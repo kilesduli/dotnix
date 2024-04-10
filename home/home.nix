@@ -8,7 +8,10 @@
     stateVersion = "23.11"; # change it before read release note.
 
     packages = with pkgs; [
-      autojump bat btop eza fastfetch fd fzf ripgrep zoxide
+      # command line tool
+      bat btop eza fastfetch fd fzf ripgrep sshs zoxide
+
+      # nix related
       nixd nixpkgs-fmt nix-output-monitor
     ];
 
