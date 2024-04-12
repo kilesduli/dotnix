@@ -21,10 +21,11 @@
     };
   };
 
-  outputs = { nixpkgs, home-manager, emacs-overlay, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
     let
       system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; overlays = [ emacs-overlay.overlays.emacs ] ++ (import ./overlays.nix); };
+      overlays = (import ./overlays.nix { inputs = self.inputs; });
+      pkgs = import nixpkgs { inherit system overlays; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
