@@ -19,6 +19,11 @@
         nixpkgs-stable.follows = "nixpkgs-stable";
       };
     };
+
+    nur-xddxdd = {
+      url = "github:xddxdd/nur-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:

@@ -13,7 +13,7 @@
                 :fetcher github)
         '';
         postPatch = old.postPatch or "" + ''emacs --batch -Q -L . \ --eval "(progn (require 'rime) (rime-compile-module))" '';
-        buildInputs = old.buildInputs ++ (with pkgs; [librime]);
+        buildInputs = old.buildInputs ++ (with pkgs; [lantianCustomized.librime-with-plugins]);
       }))
     ];
   };
