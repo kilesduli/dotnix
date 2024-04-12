@@ -1,5 +1,5 @@
 { inputs }:
 [
   inputs.emacs-overlay.overlay
-  (import ./emacs/overlay-without-im.nix)
+  (import ./emacs-overlay-without-im.nix)
 ]

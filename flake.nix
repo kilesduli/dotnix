@@ -24,7 +24,7 @@
   outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
     let
       system = "x86_64-linux";
-      overlays = (import ./overlays.nix { inputs = self.inputs; });
+      overlays = (import ./overlays { inputs = self.inputs; });
       pkgs = import nixpkgs { inherit system overlays; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
@@ -32,7 +32,7 @@
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = [ ./home/home.nix ./emacs/emacs.nix ];
+        modules = [ ./home/duli.nix ./home/emacs.nix ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
