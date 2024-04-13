@@ -9,11 +9,6 @@ in
     package = emacs;
     extraPackages = epkgs: [
       (epkgs.melpaPackages.rime.overrideAttrs (old: {
-        recipe = pkgs.writeText "recipe" ''
-          (rime :repo "DogLooksGood/emacs-rime"
-                :files (:defaults "lib.c" "Makefile" "librime-emacs.so")
-                :fetcher github)
-        '';
         buildInputs = (lib.lists.remove pkgs.librime old.buildInputs) ++ [ pkgs.librime-with-plugins ];
       }))
     ];
