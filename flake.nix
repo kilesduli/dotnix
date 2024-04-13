@@ -20,9 +20,17 @@
       };
     };
 
+    nvfetcher = {
+      url = "github:berberman/nvfetcher";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nur-xddxdd = {
       url = "github:xddxdd/nur-packages";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nvfetcher.follows = "nvfetcher";
+      };
     };
   };
 

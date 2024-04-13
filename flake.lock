@@ -208,7 +208,9 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "nvfetcher": "nvfetcher"
+        "nvfetcher": [
+          "nvfetcher"
+        ]
       },
       "locked": {
         "lastModified": 1712903672,
@@ -229,7 +231,6 @@
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils_2",
         "nixpkgs": [
-          "nur-xddxdd",
           "nixpkgs"
         ]
       },
@@ -254,7 +255,8 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "nur-xddxdd": "nur-xddxdd"
+        "nur-xddxdd": "nur-xddxdd",
+        "nvfetcher": "nvfetcher"
       }
     },
     "systems": {

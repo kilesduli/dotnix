@@ -12,6 +12,8 @@
 
       # nix related
       nixd nixpkgs-fmt nix-output-monitor
+
+      nvfetcher
     ];
 
     file = {
