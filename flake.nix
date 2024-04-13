@@ -37,7 +37,7 @@
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = [ ./home/duli.nix ./home/emacs.nix ];
+        modules = [ ./home/duli.nix ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix

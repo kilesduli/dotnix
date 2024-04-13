@@ -1,27 +1,15 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ./config-duli.nix
+  ];
+
   # define my home
   home = {
     username = "duli";
     homeDirectory = "/home/duli";
     stateVersion = "23.11"; # change it before read release note.
-
-    packages = with pkgs; [
-      # command line tool
-      bat btop eza duf dust fastfetch fd fzf ripgrep sshs zoxide
-
-      # nix related
-      nixd nixpkgs-fmt nix-output-monitor
-    ];
-
-    file = {
-
-    };
-
-    sessionVariables = {
-      # EDITOR = "emacs";
-    };
   };
 
   nix = {
@@ -31,5 +19,4 @@
   };
 
   programs.home-manager.enable = true;
-
 }
