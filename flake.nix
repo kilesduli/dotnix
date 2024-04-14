@@ -32,6 +32,11 @@
         nvfetcher.follows = "nvfetcher";
       };
     };
+
+    doom-emacs = {
+      url = "github:doomemacs/doomemacs";
+      flake = false;
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
