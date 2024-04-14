@@ -38,7 +38,7 @@
     let
       system = "x86_64-linux";
       overlays = (import ./overlays { inputs = self.inputs; });
-      pkgs = import nixpkgs { inherit system overlays; };
+      pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
@@ -49,6 +49,7 @@
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
+        extraSpecialArgs = { inherit self; };
       };
     };
 }
