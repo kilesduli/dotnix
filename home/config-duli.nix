@@ -6,18 +6,20 @@
   ];
 
   home = {
-    packages = with pkgs; [
-      # command line tool
-      bat btop eza duf dust fastfetch fd fzf ripgrep sshs zoxide
+    packages = with pkgs;
+      [
+        # command line tool
+        bat btop eza duf dust fastfetch fd fzf ripgrep sshs zoxide
 
-      # nix related
-      nixd nixpkgs-fmt nix-output-monitor
+        # nix related
+        nixd nixpkgs-fmt nix-output-monitor
 
-      nvfetcher
-
+        nvfetcher
+      ] ++
       # gui tools
-      vial
-    ];
+      [
+        vial
+      ];
 
     file = {
 
