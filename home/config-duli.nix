@@ -14,6 +14,9 @@
       nixd nixpkgs-fmt nix-output-monitor
 
       nvfetcher
+
+      # gui tools
+      vial
     ];
 
     file = {
