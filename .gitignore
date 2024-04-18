@@ -1,2 +1,2 @@
-result
-result/
+# don't track home-manager build result (symbolic link)
+/result
