@@ -10,6 +10,7 @@
       [
         # command line tool
         bat btop eza duf dust fastfetch fd fzf ripgrep sshs zoxide
+        tokei
 
         # nix related
         nixd nixpkgs-fmt nix-output-monitor
@@ -18,7 +19,7 @@
       ] ++
       # gui tools
       [
-        vial
+        screenkey vial
       ];
 
     file = {
