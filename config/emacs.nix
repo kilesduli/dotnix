@@ -43,4 +43,9 @@ in
       WantedBy = [ "default.target" ];
     };
   };
+
+  home.file.".emacs.d" = {
+    source = self.inputs.doom-emacs.outPath;
+    recursive = true;
+  };
 }
