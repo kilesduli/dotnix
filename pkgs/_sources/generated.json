@@ -1,0 +1,82 @@
+{
+    "source-librime-charcode": {
+        "cargoLocks": null,
+        "date": "2024-03-19",
+        "extract": null,
+        "name": "source-librime-charcode",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "rime",
+            "repo": "librime-charcode",
+            "rev": "55e7f563e999802d41a13ba02657c1be4b2011b4",
+            "sha256": "sha256-KfKkpph+2ChQpkkGKubmpg/18uPX9qUHTqJT1PSGorI=",
+            "type": "github"
+        },
+        "version": "55e7f563e999802d41a13ba02657c1be4b2011b4"
+    },
+    "source-librime-lua": {
+        "cargoLocks": null,
+        "date": "2024-05-03",
+        "extract": null,
+        "name": "source-librime-lua",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "hchunhui",
+            "repo": "librime-lua",
+            "rev": "43229d766f1e0f3198f61dc9d2e38bc1f921387f",
+            "sha256": "sha256-JdT47lb3+HrDq3xbcm2nNHfL4/wg7h+ei+MMF6SbsGg=",
+            "type": "github"
+        },
+        "version": "43229d766f1e0f3198f61dc9d2e38bc1f921387f"
+    },
+    "source-librime-octagram": {
+        "cargoLocks": null,
+        "date": "2024-02-05",
+        "extract": null,
+        "name": "source-librime-octagram",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "lotem",
+            "repo": "librime-octagram",
+            "rev": "bd12863f45fbbd5c7db06d5ec8be8987b10253bf",
+            "sha256": "sha256-77g72tee4ahNcu3hfW1Okqr9z8Y6WrPgUhw316O72Ng=",
+            "type": "github"
+        },
+        "version": "bd12863f45fbbd5c7db06d5ec8be8987b10253bf"
+    },
+    "source-librime-proto": {
+        "cargoLocks": null,
+        "date": "2023-10-17",
+        "extract": null,
+        "name": "source-librime-proto",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "lotem",
+            "repo": "librime-proto",
+            "rev": "657a923cd4c333e681dc943e6894e6f6d42d25b4",
+            "sha256": "sha256-HdypebfmzreSdEQBwbvRG6sJZPASP+e8Tew+GrMnpOQ=",
+            "type": "github"
+        },
+        "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
+    }
+}

@@ -1,0 +1,15 @@
+[source-librime-charcode]
+src.git = "https://github.com/rime/librime-charcode.git"
+fetch.github = "rime/librime-charcode"
+
+[source-librime-lua]
+src.git = "https://github.com/hchunhui/librime-lua.git"
+fetch.github = "hchunhui/librime-lua"
+
+[source-librime-octagram]
+src.git = "https://github.com/lotem/librime-octagram.git"
+fetch.github = "lotem/librime-octagram"
+
+[source-librime-proto]
+src.git = "https://github.com/lotem/librime-proto.git"
+fetch.github = "lotem/librime-proto"
