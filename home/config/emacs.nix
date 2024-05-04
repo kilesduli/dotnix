@@ -1,7 +1,7 @@
 { self, config, lib, pkgs, ... }:
 
 let
-  emacs = pkgs.emacs-git;
+  emacs = pkgs.emacs-master;
 in
 {
   programs.emacs = {
