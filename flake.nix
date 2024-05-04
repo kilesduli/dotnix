@@ -38,7 +38,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
+  outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@inputs:
     let
       system = "x86_64-linux";
       overlays = (import ./overlays { inputs = self.inputs; });
