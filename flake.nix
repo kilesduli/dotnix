@@ -3,32 +3,29 @@
 
   inputs = {
     # Specify the source of Home Manager and Nixpkgs.
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
     home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     emacs-overlay = {
       url = "github:nix-community/emacs-overlay";
-      inputs = {
-        nixpkgs.follows = "nixpkgs-unstable";
-        nixpkgs-stable.follows = "nixpkgs-stable";
-      };
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     nvfetcher = {
       url = "github:berberman/nvfetcher";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     nur-xddxdd = {
       url = "github:xddxdd/nur-packages";
       inputs = {
-        nixpkgs.follows = "nixpkgs";
+        nixpkgs.follows = "nixpkgs-unstable";
         nvfetcher.follows = "nvfetcher";
       };
     };
@@ -39,11 +36,11 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
+  outputs = { self, nixpkgs-unstable, home-manager, emacs-overlay, ... }@from:
     let
       system = "x86_64-linux";
       overlays = (import ./overlays { inputs = self.inputs; });
-      pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
+      pkgs = import nixpkgs-unstable { inherit system overlays; config.allowUnfree = true; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
