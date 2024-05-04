@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./config
     ./config-duli.nix
   ];
 

@@ -7,6 +7,8 @@
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -36,11 +38,11 @@
     };
   };
 
-  outputs = { self, nixpkgs-unstable, home-manager, emacs-overlay, ... }@from:
+  outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@from:
     let
       system = "x86_64-linux";
       overlays = (import ./overlays { inputs = self.inputs; });
-      pkgs = import nixpkgs-unstable { inherit system overlays; config.allowUnfree = true; };
+      pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
