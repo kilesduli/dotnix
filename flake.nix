@@ -41,11 +41,16 @@
   outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@inputs:
     let
       system = "x86_64-linux";
-      overlays = (import ./overlays { inputs = self.inputs; });
+      lib = inputs.nixpkgs.lib;
+      selfhostpkgs = import ./pkgs;
+      overlays = [
+        inputs.emacs-overlay.overlay
+        selfhostpkgs.overlay
+      ];
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
     in {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
-        inherit pkgs;
+        inherit lib pkgs;
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
