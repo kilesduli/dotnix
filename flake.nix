@@ -24,14 +24,6 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
-    nur-xddxdd = {
-      url = "github:xddxdd/nur-packages";
-      inputs = {
-        nixpkgs.follows = "nixpkgs-unstable";
-        nvfetcher.follows = "nvfetcher";
-      };
-    };
-
     doom-emacs = {
       url = "github:kilesduli/doomemacs";
       flake = false;
