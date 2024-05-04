@@ -1,11 +1,10 @@
-{
-  librime,
-  lua54Packages,
-  source-librime-charcode,
-  source-librime-lua,
-  source-librime-octagram,
-  source-librime-proto,
-  ...
+{ librime
+, lua54Packages
+, source-librime-charcode
+, source-librime-lua
+, source-librime-octagram
+, source-librime-proto
+, ...
 }:
 (librime.override {
   plugins = [

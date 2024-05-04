@@ -40,7 +40,8 @@
         selfhostpkgs.overlay
       ];
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
-    in {
+    in
+    {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
         inherit lib pkgs;
 

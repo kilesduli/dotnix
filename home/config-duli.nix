@@ -5,22 +5,33 @@
     packages = with pkgs;
       [
         # command line tool
-        bat btop eza duf dust fastfetch fd fzf ripgrep sshs zoxide
+        bat
+        btop
+        eza
+        duf
+        dust
+        fastfetch
+        fd
+        fzf
+        ripgrep
+        sshs
+        zoxide
         tokei
 
         # nix related
-        nixd nixpkgs-fmt nix-output-monitor
+        nixd
+        nixpkgs-fmt
+        nix-output-monitor
 
         nvfetcher
       ] ++
-      # gui tools
       [
-        screenkey vial
+        # gui tools
+        screenkey
+        vial
       ];
 
-    file = {
-
-    };
+    file = { };
 
     sessionVariables = {
       # EDITOR = "emacs";
