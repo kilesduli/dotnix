@@ -27,8 +27,12 @@
       ] ++
       [
         # gui tools
+        kuro
+        menulibre
+        pavucontrol
         screenkey
         vial
+        vscode
       ];
 
     file = { };
