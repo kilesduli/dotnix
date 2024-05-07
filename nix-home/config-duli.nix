@@ -24,8 +24,7 @@
         nix-output-monitor
 
         nvfetcher
-      ] ++
-      [
+
         # gui tools
         kuro
         menulibre
@@ -33,6 +32,7 @@
         screenkey
         vial
         vscode
+
       ];
 
     file = { };
