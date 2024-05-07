@@ -34,7 +34,7 @@
     let
       system = "x86_64-linux";
       lib = inputs.nixpkgs.lib;
-      selfhostpkgs = import ./pkgs;
+      selfhostpkgs = import ./nix-pkgs;
       overlays = [
         inputs.emacs-overlay.overlay
         selfhostpkgs.overlay
@@ -47,7 +47,7 @@
 
         # Specify your home configuration modules here, for example,
         # the path to your home.nix.
-        modules = [ ./home/duli.nix ];
+        modules = [ ./nix-home/duli.nix ];
 
         # Optionally use extraSpecialArgs
         # to pass through arguments to home.nix
