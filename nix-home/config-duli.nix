@@ -33,6 +33,8 @@
         vial
         vscode
 
+        # emacs related
+        xclip
       ];
 
     file = { };
