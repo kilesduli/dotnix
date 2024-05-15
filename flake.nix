@@ -25,7 +25,7 @@
     };
 
     doom-emacs = {
-      url = "github:kilesduli/doomemacs";
+      url = "github:kilesduli/doomemacs/duli/master";
       flake = false;
     };
   };
