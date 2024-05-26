@@ -34,6 +34,7 @@
         vscode
 
         # emacs related
+        librime-with-plugins
         xclip
       ];
 

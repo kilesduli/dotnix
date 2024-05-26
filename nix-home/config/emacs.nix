@@ -4,15 +4,7 @@ let
   emacs = pkgs.emacs-master;
 in
 {
-  programs.emacs = {
-    enable = true;
-    package = emacs;
-    extraPackages = epkgs: [
-      (epkgs.melpaPackages.rime.overrideAttrs (old: {
-        buildInputs = (lib.lists.remove pkgs.librime old.buildInputs) ++ [ pkgs.librime-with-plugins ];
-      }))
-    ];
-  };
+  home.packages = [ emacs ];
 
   systemd.user.services.emacs = {
     Unit = {
