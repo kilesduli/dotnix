@@ -18,6 +18,14 @@
         zoxide
         tokei
 
+        # go related
+        go
+        golangci-lint
+        gomodifytags
+        gopls
+        gore
+        gotests
+
         # nix related
         nixd
         nixpkgs-fmt
