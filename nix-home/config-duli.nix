@@ -44,6 +44,11 @@
         # emacs related
         librime-with-plugins
         xclip
+
+        # scheme
+        chez
+        guile
+        racket
       ];
 
     file = { };
