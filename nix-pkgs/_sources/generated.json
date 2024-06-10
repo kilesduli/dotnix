@@ -21,7 +21,7 @@
     },
     "source-librime-lua": {
         "cargoLocks": null,
-        "date": "2024-05-03",
+        "date": "2024-05-19",
         "extract": null,
         "name": "source-librime-lua",
         "passthru": null,
@@ -33,11 +33,11 @@
             "name": null,
             "owner": "hchunhui",
             "repo": "librime-lua",
-            "rev": "43229d766f1e0f3198f61dc9d2e38bc1f921387f",
-            "sha256": "sha256-JdT47lb3+HrDq3xbcm2nNHfL4/wg7h+ei+MMF6SbsGg=",
+            "rev": "7be6974b6d81c116bba39f6707dc640f6636fa4e",
+            "sha256": "sha256-jsrnAFE99d0U0LdddTL7G1p416qJfSNR935TZFH3Swk=",
             "type": "github"
         },
-        "version": "43229d766f1e0f3198f61dc9d2e38bc1f921387f"
+        "version": "7be6974b6d81c116bba39f6707dc640f6636fa4e"
     },
     "source-librime-octagram": {
         "cargoLocks": null,
