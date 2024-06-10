@@ -44,6 +44,7 @@
         # emacs related
         librime-with-plugins
         xclip
+        emacs-lsp-booster
 
         # scheme
         chez

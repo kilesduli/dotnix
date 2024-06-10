@@ -1,4 +1,24 @@
 {
+    "source-emacs-lsp-booster": {
+        "cargoLocks": null,
+        "date": "2024-04-18",
+        "extract": null,
+        "name": "source-emacs-lsp-booster",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "blahgeek",
+            "repo": "emacs-lsp-booster",
+            "rev": "678641d210335d59190cfa681203699f1de067d6",
+            "sha256": "sha256-uP/xJfXQtk8oaG5Zk+dw+C2fVFdjpUZTDASFuj1+eYs=",
+            "type": "github"
+        },
+        "version": "678641d210335d59190cfa681203699f1de067d6"
+    },
     "source-librime-charcode": {
         "cargoLocks": null,
         "date": "2024-03-19",
