@@ -50,6 +50,26 @@
         chez
         guile
         racket
+
+        # LaTeX?
+        tectonic # a nice xelatex + auto-download tool
+        ## emacs latex preview ( less package )
+        (texlive.withPackages
+          (ps: with ps; [
+            dvisvgm
+            xetex
+
+            fontspec
+            graphics # graphicx rotating
+            tools # longtable
+            wrapfig
+            ulem
+            amsmath
+            amsfonts
+            capt-of
+            hyperref
+          ])
+        )
       ];
 
     file = { };
