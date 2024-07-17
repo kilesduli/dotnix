@@ -26,7 +26,7 @@ in
         ${emacs}/bin/emacsclient -c --eval "(delete-frame)"
       '';
       ExecStop = ''
-        ${emacs}/bin/emacsclient --no-wait --eval "(progn (setq kill-emacs-hook nil) (kill-emacs))"
+        ${emacs}/bin/emacsclient --no-wait --eval "(kill-emacs)"
       '';
       Restart = "on-failure";
     };
