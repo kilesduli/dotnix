@@ -28,6 +28,11 @@
       url = "github:doomemacs/doomemacs/master";
       flake = false;
     };
+
+    nixgl = {
+      url = "github:nix-community/nixGL";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, emacs-overlay, ... }@inputs:
@@ -37,6 +42,7 @@
       selfhostpkgs = import ./nix-pkgs;
       overlays = [
         inputs.emacs-overlay.overlay
+        inputs.nixgl.overlay
         selfhostpkgs.overlay
       ];
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };

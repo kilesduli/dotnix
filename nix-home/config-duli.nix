@@ -42,6 +42,8 @@
         vscode
         calibre-enhanced
 
+        # openGL related fix
+        nixgl.auto.nixGLDefault
 
         # emacs related
         librime-with-plugins
