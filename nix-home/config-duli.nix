@@ -30,7 +30,6 @@
         nixd
         nixpkgs-fmt
         nix-output-monitor
-
         nvfetcher
 
         # gui tools
@@ -62,7 +61,6 @@
           (ps: with ps; [
             dvisvgm
             xetex
-
             fontspec
             graphics # graphicx rotating
             tools # longtable
