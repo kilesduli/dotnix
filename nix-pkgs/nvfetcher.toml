@@ -17,3 +17,7 @@ fetch.github = "lotem/librime-proto"
 [source-emacs-lsp-booster]
 src.git = "https://github.com/blahgeek/emacs-lsp-booster"
 fetch.github = "blahgeek/emacs-lsp-booster"
+
+[source-calibre-do-not-translate]
+src.git = "https://github.com/Cirn09/calibre-do-not-translate-my-path"
+fetch.github = "Cirn09/calibre-do-not-translate-my-path"

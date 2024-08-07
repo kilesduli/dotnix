@@ -1,4 +1,24 @@
 {
+    "source-calibre-do-not-translate": {
+        "cargoLocks": null,
+        "date": "2024-08-03",
+        "extract": null,
+        "name": "source-calibre-do-not-translate",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "Cirn09",
+            "repo": "calibre-do-not-translate-my-path",
+            "rev": "f211600c3d76ab7ccee5d691c79ea89f3a5f9839",
+            "sha256": "sha256-JH+Q6m0EogJ5vFsTpm/+Gbn9prKndh58O0tRn0jGJnc=",
+            "type": "github"
+        },
+        "version": "f211600c3d76ab7ccee5d691c79ea89f3a5f9839"
+    },
     "source-emacs-lsp-booster": {
         "cargoLocks": null,
         "date": "2024-07-11",

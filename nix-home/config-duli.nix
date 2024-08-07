@@ -40,6 +40,8 @@
         screenkey
         vial
         vscode
+        calibre-enhanced
+
 
         # emacs related
         librime-with-plugins
