@@ -4,9 +4,11 @@
 , source-librime-lua
 , source-librime-octagram
 , source-librime-proto
+, ccacheStdenv
 , ...
 }:
 (librime.override {
+  stdenv = ccacheStdenv;
   plugins = [
     (source-librime-charcode.src.overrideAttrs (old: {
       name = "librime-charcode";
