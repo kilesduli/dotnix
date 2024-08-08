@@ -44,6 +44,7 @@
         inputs.emacs-overlay.overlay
         inputs.nixgl.overlay
         selfhostpkgs.overlay
+        (import ./nix-chore/ccache.nix)
       ];
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
     in
