@@ -1,4 +1,4 @@
-From 503a4606f5b8ab1fa11c2293918038564e49745a Mon Sep 17 00:00:00 2001
+From 418e1960eef962faa3dda49226a5e5d6057c45f0 Mon Sep 17 00:00:00 2001
 From: duli <duli4868@gmail.com>
 Date: Thu, 8 Aug 2024 02:25:38 +0800
 Subject: [PATCH] feat: avoid latinization of paths in certain functionalities.
@@ -14,10 +14,11 @@ Replace `ascii_filename` with `sanitize_file_name`.
 Replace `ascii_filename` with `sanitize_file_name`.
 
 * src/calibre/devices/smart_device_app/driver.py (_create_upload_path,
-upload_books): Replace `ascii_filename` with `sanitize_file_name`.
+upload_books): Replace `ascii_filename` and its aliases with
+`sanitize_file_name`.
 
 * src/calibre/devices/usbms/device.py (sanitize_callback): Replace
-`ascii_filename` with `sanitize_file_name`.
+`ascii_filename` and its aliases with `sanitize_file_name`.
 
 * src/calibre/devices/usbms/driver.py (upload_books): Add debug
 statement.
@@ -27,11 +28,11 @@ Replace `ascii_filename` with `sanitize_file_name`. Add debug statement.
 ---
  src/calibre/db/backend.py                     | 15 ++++++------
  src/calibre/devices/mtp/driver.py             |  5 ++--
- .../devices/smart_device_app/driver.py        |  6 ++---
+ .../devices/smart_device_app/driver.py        | 15 ++++++------
  src/calibre/devices/usbms/device.py           |  5 ++--
  src/calibre/devices/usbms/driver.py           |  1 +
  src/calibre/gui2/device.py                    | 24 ++++++++++++-------
- 6 files changed, 32 insertions(+), 24 deletions(-)
+ 6 files changed, 37 insertions(+), 28 deletions(-)
 
 diff --git a/src/calibre/db/backend.py b/src/calibre/db/backend.py
 index 34977661e1..a593525d9e 100644
@@ -120,7 +121,7 @@ index 532df43b2f..4c36671c01 100644
                  raise MTPInvalidSendPathError('/'.join(path))
              parent = self.ensure_parent(storage, path)
 diff --git a/src/calibre/devices/smart_device_app/driver.py b/src/calibre/devices/smart_device_app/driver.py
-index f512914853..181035725f 100644
+index f512914853..059cbca9e6 100644
 --- a/src/calibre/devices/smart_device_app/driver.py
 +++ b/src/calibre/devices/smart_device_app/driver.py
 @@ -21,7 +21,7 @@
@@ -132,28 +133,55 @@ index f512914853..181035725f 100644
  from calibre.constants import DEBUG, cache_dir, numeric_version
  from calibre.devices.errors import ControlError, InitialConnectionError, OpenFailed, OpenFeedback, PacketError, TimeoutError, UserFeedback
  from calibre.devices.interface import DevicePlugin, currently_connected_device
-@@ -36,7 +36,6 @@
+@@ -34,9 +34,9 @@
+ from calibre.ebooks.metadata.book.base import Metadata
+ from calibre.ebooks.metadata.book.json_codec import JsonCodec
  from calibre.library import current_library_name
++from calibre.prints import debug_print
  from calibre.ptempfile import PersistentTemporaryFile
  from calibre.utils.config_base import tweaks
 -from calibre.utils.filenames import ascii_filename as sanitize
  from calibre.utils.filenames import shorten_components_to
  from calibre.utils.ipc import eintr_retry_call
  from calibre.utils.mdns import get_all_ips
-@@ -496,7 +495,7 @@ def _create_upload_path(self, mdata, fname, create_dirs=True):
+@@ -447,7 +447,7 @@ def _update_driveinfo_record(self, dinfo, prefix, location_code, name=None):
+     # remove the 'path' argument and all its uses. Also removed the calls to
+     # filename_callback and sanitize_path_components
+     def _create_upload_path(self, mdata, fname, create_dirs=True):
+-        fname = sanitize(fname)
++        fname = sanitize_file_name(fname)
+         ext = os.path.splitext(fname)[1]
+ 
+         try:
+@@ -496,11 +496,11 @@ def _create_upload_path(self, mdata, fname, create_dirs=True):
          id_ = mdata.get('id', fname)
          extra_components = get_components(template, mdata, id_,
                  timefmt=opts.send_timefmt, length=maxlen-len(app_id)-1,
 -                last_has_extension=False)
 +                last_has_extension=False, sanitize_func=sanitize_file_name)
          if not extra_components:
-             extra_components.append(sanitize(fname))
+-            extra_components.append(sanitize(fname))
++            extra_components.append(sanitize_file_name(fname))
          else:
-@@ -1488,6 +1487,7 @@ def upload_books(self, files, names, on_card=None, end_session=True,
+-            extra_components[-1] = sanitize(extra_components[-1]+ext)
++            extra_components[-1] = sanitize_file_name(extra_components[-1]+ext)
+ 
+         if extra_components[-1] and extra_components[-1][0] in ('.', '_'):
+             extra_components[-1] = 'x' + extra_components[-1][1:]
+@@ -514,7 +514,7 @@ def _create_upload_path(self, mdata, fname, create_dirs=True):
+                     extra_components.append('News')
+             else:
+                 for c in tag.split('/'):
+-                    c = sanitize(c)
++                    c = sanitize_file_name(c)
+                     if not c:
+                         continue
+                     extra_components.append(c)
+@@ -1488,6 +1488,7 @@ def upload_books(self, files, names, on_card=None, end_session=True,
          for i, infile in enumerate(files):
              mdata, fname = next(metadata), next(names)
              lpath = self._create_upload_path(mdata, fname, create_dirs=False)
-+            prints.debug_print("smart_device_app.py/driver.py:upload_books:lpath->",lpath)
++            debug_print("smart_device_app.py/driver.py:upload_books:lpath->",lpath)
              self._debug('lpath', lpath)
              if not hasattr(infile, 'read'):
                  infile = USBMS.normalize_path(infile)
@@ -273,5 +301,5 @@ index d8777e430a..05a494d585 100644
          self.upload_books(gf, names, good, on_card, memory=(_files, remove))
          self.status_bar.show_message(_('Sending books to device.'), 5000)
 -- 
-2.45.2
+2.46.0
 
