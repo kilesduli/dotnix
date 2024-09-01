@@ -22,9 +22,6 @@ in
       ExecStart = ''
         ${emacs}/bin/emacs --daemon
       '';
-      ExecStartPost = ''
-        ${emacs}/bin/emacsclient -c --eval "(delete-frame)"
-      '';
       ExecStop = ''
         ${emacs}/bin/emacsclient --no-wait --eval "(kill-emacs)"
       '';
