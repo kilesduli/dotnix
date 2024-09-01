@@ -33,7 +33,6 @@
         nvfetcher
 
         # gui tools
-        kuro
         menulibre
         pavucontrol
         screenkey
