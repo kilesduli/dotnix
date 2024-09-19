@@ -21,8 +21,6 @@ let
         (filterDir (readDir ./.))));
 in
 rec {
-  inherit mapPackages;
-  packages = pkgs: mapPackages (name: pkgs.${name});
   overlay =
     final: prev:
     mapPackages (
