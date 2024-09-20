@@ -27,15 +27,15 @@
   };
   source-librime-lua = {
     pname = "source-librime-lua";
-    version = "7be6974b6d81c116bba39f6707dc640f6636fa4e";
+    version = "fa6563cf7b40f3bfbf09e856420bff8de6820558";
     src = fetchFromGitHub {
       owner = "hchunhui";
       repo = "librime-lua";
-      rev = "7be6974b6d81c116bba39f6707dc640f6636fa4e";
+      rev = "fa6563cf7b40f3bfbf09e856420bff8de6820558";
       fetchSubmodules = false;
-      sha256 = "sha256-jsrnAFE99d0U0LdddTL7G1p416qJfSNR935TZFH3Swk=";
+      sha256 = "sha256-jv5TZSp36UGbaRiXv9iUNLu3DE/yrWANQhY6TWLPD8c=";
     };
-    date = "2024-05-19";
+    date = "2024-08-19";
   };
   source-librime-octagram = {
     pname = "source-librime-octagram";
