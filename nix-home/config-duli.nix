@@ -71,6 +71,9 @@
             hyperref
           ])
         )
+
+        # python
+        pipx
       ];
 
     file = { };
