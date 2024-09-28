@@ -75,6 +75,11 @@
 
         # python
         pipx
+
+        # ime-frontend
+        fcitx5-gtk
+        libsForQt5.fcitx5-qt
+        kdePackages.fcitx5-qt
       ];
 
     file = { };
