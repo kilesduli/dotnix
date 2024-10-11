@@ -39,7 +39,7 @@
         vial
         vscode
         calibre-enhanced
-        sioyek-patched
+        sioyek
 
         # openGL related fix
         nixgl.auto.nixGLDefault
