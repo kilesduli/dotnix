@@ -10,7 +10,7 @@
   home = {
     username = "duli";
     homeDirectory = "/home/duli";
-    stateVersion = "23.11"; # change it before read release note.
+    stateVersion = "24.05"; # change it before read release note.
   };
 
   nix = {
