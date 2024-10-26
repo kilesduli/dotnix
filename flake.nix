@@ -2,28 +2,26 @@
   description = "Nix configuration of duli";
 
   inputs = {
-    # Specify the source of Home Manager and Nixpkgs.
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     nixos-stable.url = "github:nixos/nixpkgs/nixos-24.05";
 
-    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    nixpkgs.follows = "nixpkgs-unstable";
 
     home-manager = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     emacs-overlay = {
       url = "github:nix-community/emacs-overlay";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixos-stable";
       inputs.flake-utils.follows = "flake-utils";
     };
 
     nvfetcher = {
       url = "github:berberman/nvfetcher";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
 
@@ -34,7 +32,7 @@
 
     nixgl = {
       url = "github:nix-community/nixGL";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "flake-utils";
     };
 
