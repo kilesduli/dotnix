@@ -1,36 +1,13 @@
 { self, config, lib, pkgs, ... }:
 
-let
-  emacs = pkgs.emacs-master;
-in
 {
-  home.packages = [ emacs ];
+  programs.emacs = {
+    enable = true;
+    package = pkgs.emacs-master;
+  };
 
-  systemd.user.services.emacs = {
-    Unit = {
-      Description = "Emacs text editor";
-      Documentation =
-        "info:emacs man:emacs(1) https://gnu.org/software/emacs/";
-
-      # Avoid killing the Emacs session, which may be full of
-      # unsaved buffers.
-      X-RestartIfChanged = false;
-    };
-
-    Service = {
-      Type = "forking";
-      ExecStart = ''
-        ${emacs}/bin/emacs --daemon
-      '';
-      ExecStop = ''
-        ${emacs}/bin/emacsclient --no-wait --eval "(kill-emacs)"
-      '';
-      Restart = "on-failure";
-    };
-
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
+  services.emacs = {
+    enable = true;
   };
 
   home.file.".emacs.d" = {
