@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ./config
+    ./part/emacs.nix
     ./config-duli.nix
   ];
 
