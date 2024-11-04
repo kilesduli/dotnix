@@ -12,11 +12,6 @@ in
     package = emacs;
   };
 
-  home.file.".emacs.d" = {
-    source = self.inputs.doom-emacs.outPath;
-    recursive = true;
-  };
-
   home.sessionVariables = {
     LSP_USE_PLISTS = "true";
   };

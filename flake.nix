@@ -25,11 +25,6 @@
       inputs.flake-utils.follows = "flake-utils";
     };
 
-    doom-emacs = {
-      url = "github:doomemacs/doomemacs/master";
-      flake = false;
-    };
-
     nixgl = {
       url = "github:nix-community/nixGL";
       inputs.nixpkgs.follows = "nixpkgs";
