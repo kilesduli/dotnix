@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ self, config, lib, pkgs, ... }:
 
 {
   home = {
@@ -82,6 +82,9 @@
         fcitx5-gtk
         libsForQt5.fcitx5-qt
         kdePackages.fcitx5-qt
+
+        # zig
+        self.inputs.ghostty.packages.x86_64-linux.default
       ];
 
     file = { };
