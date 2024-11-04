@@ -16,7 +16,6 @@
       url = "github:nix-community/emacs-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.nixpkgs-stable.follows = "nixos-stable";
-      inputs.flake-utils.follows = "flake-utils";
     };
 
     nvfetcher = {
