@@ -15,7 +15,6 @@
         fzf
         ripgrep
         sshs
-        zoxide
         tokei
 
         # go related
