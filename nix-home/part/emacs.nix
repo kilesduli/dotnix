@@ -12,7 +12,14 @@ in
     package = emacs;
   };
 
-  home.sessionVariables = {
-    LSP_USE_PLISTS = "true";
+  home = {
+    sessionPath = [
+      "$HOME/.emacs.d/bin"
+    ];
+
+    sessionVariables = {
+      LSP_USE_PLISTS = "true";
+    };
   };
+
 }
