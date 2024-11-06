@@ -1,8 +1,16 @@
 { config, lib, pkgs, ... }:
 
+let
+  # we wanna system side environment works fine.
+  zsh-symbolic = pkgs.runCommand "zsh-symlink" { } ''
+    mkdir -p $out/bin
+    ln -s /usr/bin/zsh $out/bin/zsh
+  '';
+in
 {
   programs.zsh = {
     enable = true;
+    package = zsh-symbolic;
     shellAliases =
       let
         user- = command: "systemctl --user ${command}";
