@@ -22,7 +22,7 @@ in
         user-stop = user- "stop";
         fars = ''curl -F "c=@-" "http://fars.ee/"'';
         ls = "eza --time-style iso -m --group-directories-first";
-        ll = "eza --time-style iso --icons -l -m --group-directories-first";
+        ll = "eza --time-style iso --icons -al -m --group-directories-first";
       };
     initExtra = ''
       ex ()
