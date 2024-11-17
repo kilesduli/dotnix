@@ -20,9 +20,14 @@ in
         user-restart = user- "restart";
         user-status = user- "status";
         user-stop = user- "stop";
+        flatpak-user = "flatpak --user";
         fars = ''curl -F "c=@-" "http://fars.ee/"'';
         ls = "eza --time-style iso -m --group-directories-first";
-        ll = "eza --time-style iso --icons -al -m --group-directories-first";
+        ll = "eza --time-style iso -m --group-directories-first --icons -al";
+        rsync-copy = "rsync -avz --progress -h";
+        rsync-move = "rsync -avz --progress -h --remove-source-files";
+        rsync-update = "rsync -avzu --progress -h";
+        rsync-synchronize = "rsync -avzu --delete --progress -h";
       };
     initExtra = ''
       ex ()
@@ -56,7 +61,15 @@ in
     enable = true;
     theme = "jovial";
     plugins = [
-      "git"
+      "bun" # help export
+      "rust" # help export
+      "volta" # help export
+      "tailscale" # help export
+#      "go" # with aliases
+#      "yarn" #with aliases
+#      "sdk"
+#      "pip" # with offcial
+#      "ssh"
       "zsh-autosuggestions"
       "zsh-syntax-highlighting"
       "fzf-tab"
