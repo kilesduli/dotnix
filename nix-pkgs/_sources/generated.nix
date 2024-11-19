@@ -61,4 +61,16 @@
     };
     date = "2023-10-17";
   };
+  source-zsh-jovial-theme = {
+    pname = "source-zsh-jovial-theme";
+    version = "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b";
+    src = fetchFromGitHub {
+      owner = "zthxxx";
+      repo = "jovial";
+      rev = "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b";
+      fetchSubmodules = false;
+      sha256 = "sha256-KTsrbHDACFiIn1mWOwphFb4NaBqZKrqloZ2K8mnzqpc=";
+    };
+    date = "2024-07-14";
+  };
 }

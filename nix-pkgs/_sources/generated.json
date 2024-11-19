@@ -98,5 +98,25 @@
             "type": "github"
         },
         "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
+    },
+    "source-zsh-jovial-theme": {
+        "cargoLocks": null,
+        "date": "2024-07-14",
+        "extract": null,
+        "name": "source-zsh-jovial-theme",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "zthxxx",
+            "repo": "jovial",
+            "rev": "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b",
+            "sha256": "sha256-KTsrbHDACFiIn1mWOwphFb4NaBqZKrqloZ2K8mnzqpc=",
+            "type": "github"
+        },
+        "version": "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b"
     }
 }
