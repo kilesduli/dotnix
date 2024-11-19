@@ -27,27 +27,27 @@
   };
   source-librime-lua = {
     pname = "source-librime-lua";
-    version = "fa6563cf7b40f3bfbf09e856420bff8de6820558";
+    version = "b210d0cfbd2a3cc6edd4709dd0a92c479bfca10b";
     src = fetchFromGitHub {
       owner = "hchunhui";
       repo = "librime-lua";
-      rev = "fa6563cf7b40f3bfbf09e856420bff8de6820558";
+      rev = "b210d0cfbd2a3cc6edd4709dd0a92c479bfca10b";
       fetchSubmodules = false;
-      sha256 = "sha256-jv5TZSp36UGbaRiXv9iUNLu3DE/yrWANQhY6TWLPD8c=";
+      sha256 = "sha256-ETjLN40G4I0FEsQgNY8JM4AInqyb3yJwEJTGqdIHGWg=";
     };
-    date = "2024-08-19";
+    date = "2024-11-02";
   };
   source-librime-octagram = {
     pname = "source-librime-octagram";
-    version = "bd12863f45fbbd5c7db06d5ec8be8987b10253bf";
+    version = "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8";
     src = fetchFromGitHub {
       owner = "lotem";
       repo = "librime-octagram";
-      rev = "bd12863f45fbbd5c7db06d5ec8be8987b10253bf";
+      rev = "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8";
       fetchSubmodules = false;
-      sha256 = "sha256-77g72tee4ahNcu3hfW1Okqr9z8Y6WrPgUhw316O72Ng=";
+      sha256 = "sha256-dgUsH10V87mEcX/k3N118qbKo3fKDFcS8inhS6p5bJc=";
     };
-    date = "2024-02-05";
+    date = "2024-11-18";
   };
   source-librime-proto = {
     pname = "source-librime-proto";
