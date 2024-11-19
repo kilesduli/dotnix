@@ -16,8 +16,8 @@ let
         inherit name;
         paths = [ pkg ];
         postBuild = ''
-        install -D $out/share/${name}/${name}.zsh \
-        $out/share/${name}/${name}.plugin.zsh
+          install -D $out/share/${name}/${name}.zsh \
+          $out/share/${name}/${name}.plugin.zsh
         '';
       };
     in
@@ -37,7 +37,7 @@ let
       (linkPlugin pkgs.zsh-fzf-tab "fzf-tab")
     ])
     (mkLinkFarmEntry "themes" [
-      { name = "jovial.zsh-theme"; path = "/home/duli/.oh-my-zsh/custom/themes/jovial.zsh-theme"; }
+      { name = "jovial.zsh-theme"; path = "${pkgs.zsh-jovial-theme}/share/zsh-jovial-theme/jovial.zsh-theme"; }
     ])
   ];
 
