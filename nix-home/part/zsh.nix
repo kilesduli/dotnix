@@ -57,7 +57,7 @@ in
         user-stop = user- "stop";
         flatpak-user = "flatpak --user";
         fars = ''curl -F "c=@-" "http://fars.ee/"'';
-        ls = "eza --time-style iso -m --group-directories-first";
+        ls = "eza --time-style iso -m --group-directories-first --icons";
         ll = "eza --time-style iso -m --group-directories-first --icons -al";
         rsync-copy = "rsync -avz --progress -h";
         rsync-move = "rsync -avz --progress -h --remove-source-files";
