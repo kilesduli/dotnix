@@ -63,6 +63,7 @@ in
         rsync-move = "rsync -avz --progress -h --remove-source-files";
         rsync-update = "rsync -avzu --progress -h";
         rsync-synchronize = "rsync -avzu --delete --progress -h";
+        e = ''emacsclient --alternate-editor="" --create-frame --no-wait'';
       };
     initExtra = ''
       ex ()
@@ -89,6 +90,12 @@ in
             echo "'$1' is not a valid file"
           fi
         }
+
+      ediff() { emacsclient -nw --eval "(ediff-files \"$1\" \"$2\")"; }
+      eman()  { emacsclient -nw --eval "(switch-to-buffer (man \"$1\"))"; }
+
+
+      [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
     '';
   };
 
@@ -125,9 +132,17 @@ in
   home = {
     sessionVariables = {
       LANG = "en_US.UTF-8";
+      BUN_INSTALL = "$HOME/.bun";
+      SDKMAN_DIR = "$HOME/.sdkman";
+      VOLTA_HOME = "$HOME/.volta";
+      GOPATH = "$HOME/go";
+      sdkman_auto_complete = "true";
     };
     sessionPath = [
-
+      "$GOPATH/bin"
+      "$BUN_INSTALL/bin"
+      "$VOLTA_HOME/bin"
+      "$HOME/.cargo/bin"
     ];
   };
 }
