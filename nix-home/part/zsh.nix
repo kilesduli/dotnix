@@ -6,6 +6,41 @@ let
     mkdir -p $out/bin
     ln -s /usr/bin/zsh $out/bin/zsh
   '';
+
+  linkPlugin = pkg: name:
+    { name = name; path = "${pkg}/share/${name}"; };
+
+  linkPluginWithFix = pkg: name:
+    let
+      fixed = pkgs.symlinkJoin {
+        inherit name;
+        paths = [ pkg ];
+        postBuild = ''
+        install -D $out/share/${name}/${name}.zsh \
+        $out/share/${name}/${name}.plugin.zsh
+        '';
+      };
+    in
+    { name = name; path = "${fixed}/share/${name}"; };
+
+  mkLinkFarmEntry = name: dirs:
+    let
+      entry = pkgs.linkFarm "${name}" dirs;
+    in
+    { inherit name; path = "${entry}"; };
+
+
+  oh-my-zsh-custom = pkgs.linkFarm "oh-my-zsh-custom" [
+    (mkLinkFarmEntry "plugins" [
+      (linkPluginWithFix pkgs.zsh-syntax-highlighting "zsh-syntax-highlighting")
+      (linkPluginWithFix pkgs.zsh-autosuggestions "zsh-autosuggestions")
+      (linkPlugin pkgs.zsh-fzf-tab "fzf-tab")
+    ])
+    (mkLinkFarmEntry "themes" [
+      { name = "jovial.zsh-theme"; path = "/home/duli/.oh-my-zsh/custom/themes/jovial.zsh-theme"; }
+    ])
+  ];
+
 in
 {
   programs.zsh = {
@@ -74,7 +109,7 @@ in
       "zsh-syntax-highlighting"
       "fzf-tab"
     ];
-    custom = "$HOME/.oh-my-zsh/custom";
+    custom = "${oh-my-zsh-custom}";
   };
 
   programs.atuin = {
