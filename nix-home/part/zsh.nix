@@ -65,6 +65,9 @@ in
         rsync-synchronize = "rsync -avzu --delete --progress -h";
         e = ''emacsclient --alternate-editor="" --create-frame --no-wait'';
       };
+    localVariables = {
+      LANG = "en_US.UTF-8";
+    };
     initExtra = ''
       ex ()
         {
@@ -131,7 +134,6 @@ in
 
   home = {
     sessionVariables = {
-      LANG = "en_US.UTF-8";
       BUN_INSTALL = "$HOME/.bun";
       SDKMAN_DIR = "$HOME/.sdkman";
       VOLTA_HOME = "$HOME/.volta";
