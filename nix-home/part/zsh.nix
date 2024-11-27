@@ -2,7 +2,7 @@
 
 let
   linkPlugin = pkg: name:
-    { name = name; path = "${pkg}/share/${name}"; };
+    { inherit name; path = "${pkg}/share/${name}"; };
 
   linkPluginWithFix = pkg: name:
     let
@@ -15,7 +15,7 @@ let
         '';
       };
     in
-    { name = name; path = "${fixed}/share/${name}"; };
+    { inherit name; path = "${fixed}/share/${name}"; };
 
   mkLinkFarmEntry = name: dirs:
     let
