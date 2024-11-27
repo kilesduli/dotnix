@@ -10,3 +10,7 @@ stow -t /home/duli --dotfiles dotzsh
 #+begin_example bash
 sudo stow -t / keyd
 #+end_example
+** fontconfig
+#+begin_example bash
+stow -t /home/duli --dotfiles fontconfig
+#+end_example
