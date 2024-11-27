@@ -18,6 +18,7 @@
         tokei
         atuin
         zoxide
+        pyenv
 
         # go related
         go

@@ -4,7 +4,6 @@
   imports = [
     ./part/emacs.nix
     ./part/zsh.nix
-    ./part/temp.nix
     ./config-duli.nix
   ];
 
