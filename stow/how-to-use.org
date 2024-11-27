@@ -1,0 +1,12 @@
+#+title: How To Use
+#+author: duli kiles
+#+date: 2024-11-27
+* for all stuff.
+** zsh
+#+begin_example bash
+stow -t /home/duli --dotfiles dotzsh
+#+end_example
+** keyd
+#+begin_example bash
+sudo stow -t / keyd
+#+end_example
