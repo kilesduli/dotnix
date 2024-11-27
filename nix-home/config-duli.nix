@@ -16,6 +16,8 @@
         ripgrep
         sshs
         tokei
+        atuin
+        zoxide
 
         # go related
         go

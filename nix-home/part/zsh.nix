@@ -1,12 +1,6 @@
 { config, lib, pkgs, ... }:
 
 let
-  # we wanna system side environment works fine.
-  zsh-symbolic = pkgs.runCommand "zsh-symlink" { } ''
-    mkdir -p $out/bin
-    ln -s /usr/bin/zsh $out/bin/zsh
-  '';
-
   linkPlugin = pkg: name:
     { name = name; path = "${pkg}/share/${name}"; };
 
@@ -43,108 +37,10 @@ let
 
 in
 {
-  programs.zsh = {
-    enable = true;
-    package = zsh-symbolic;
-    shellAliases =
-      let
-        user- = command: "systemctl --user ${command}";
-      in
-      {
-        user-start = user- "start";
-        user-restart = user- "restart";
-        user-status = user- "status";
-        user-stop = user- "stop";
-        flatpak-user = "flatpak --user";
-        fars = ''curl -F "c=@-" "http://fars.ee/"'';
-        ls = "eza --time-style iso -m --group-directories-first --icons";
-        ll = "eza --time-style iso -m --group-directories-first --icons -al";
-        rsync-copy = "rsync -avz --progress -h";
-        rsync-move = "rsync -avz --progress -h --remove-source-files";
-        rsync-update = "rsync -avzu --progress -h";
-        rsync-synchronize = "rsync -avzu --delete --progress -h";
-        e = ''emacsclient --alternate-editor="" --create-frame --no-wait'';
-      };
-    localVariables = {
-      LANG = "en_US.UTF-8";
-    };
-    initExtra = ''
-      ex ()
-        {
-          if [ -f $1 ] ; then
-            case $1 in
-              *.tar.bz2)   tar xjf $1   ;;
-              *.tar.gz)    tar xzf $1   ;;
-              *.bz2)       bunzip2 $1   ;;
-              *.rar)       unrar x $1   ;;
-              *.gz)        gunzip $1    ;;
-              *.tar)       tar xf $1    ;;
-              *.tbz2)      tar xjf $1   ;;
-              *.tgz)       tar xzf $1   ;;
-              *.zip)       unzip $1     ;;
-              *.Z)         uncompress $1;;
-              *.7z)        7z x $1      ;;
-              *.deb)       ar x $1      ;;
-              *.tar.xz)    tar xf $1    ;;
-              *.tar.zst)   unzstd $1    ;;
-              *)           echo "'$1' cannot be extracted via ex()" ;;
-            esac
-          else
-            echo "'$1' is not a valid file"
-          fi
-        }
-
-      ediff() { emacsclient -nw --eval "(ediff-files \"$1\" \"$2\")"; }
-      eman()  { emacsclient -nw --eval "(switch-to-buffer (man \"$1\"))"; }
-
-
-      [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-    '';
-  };
-
-  programs.zsh.oh-my-zsh = {
-    enable = true;
-    theme = "jovial";
-    plugins = [
-      "bun" # help export
-      "rust" # help export
-      "volta" # help export
-      "tailscale" # help export
-#      "go" # with aliases
-#      "yarn" #with aliases
-#      "sdk"
-#      "pip" # with offcial
-#      "ssh"
-      "zsh-autosuggestions"
-      "zsh-syntax-highlighting"
-      "fzf-tab"
-    ];
-    custom = "${oh-my-zsh-custom}";
-  };
-
-  programs.atuin = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
-  programs.zoxide = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
   home = {
     sessionVariables = {
-      BUN_INSTALL = "$HOME/.bun";
-      SDKMAN_DIR = "$HOME/.sdkman";
-      VOLTA_HOME = "$HOME/.volta";
-      GOPATH = "$HOME/go";
-      sdkman_auto_complete = "true";
+      ZSH="${pkgs.oh-my-zsh}/share/oh-my-zsh";
+      ZSH_CUSTOM="${oh-my-zsh-custom}";
     };
-    sessionPath = [
-      "$GOPATH/bin"
-      "$BUN_INSTALL/bin"
-      "$VOLTA_HOME/bin"
-      "$HOME/.cargo/bin"
-    ];
   };
 }

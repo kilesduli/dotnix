@@ -1,0 +1,35 @@
+# oh-my-zsh
+# ZSH="$HOME/.oh-my-zsh"
+# ZSH_CUSTOM="$ZSH/custom"
+ZSH_CACHE_DIR="$HOME/.cache/oh-my-zsh"
+
+# go
+export GOPATH="$HOME/.go"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+
+# sdkman
+export SDKMAN_DIR="$HOME/.sdkman"
+export sdkman_auto_complete="true"
+
+# volta
+export VOLTA_HOME="$HOME/.volta"
+
+# emacs
+export LSP_USE_PLISTS="true"
+
+# pyenv
+export PYENV_ROOT="$HOME/.pyenv"
+
+# PATH
+export PATH="$PATH${PATH:+:}$GOPATH/bin:$BUN_INSTALL/bin:$VOLTA_HOME/bin:$HOME/.cargo/bin:$HOME/.emacs.d/bin"
+
+
+# Environment variables for nix
+. "/home/duli/.nix-profile/etc/profile.d/hm-session-vars.sh"
+
+# Only source this once
+if [[ -z "$__HM_ZSH_SESS_VARS_SOURCED" ]]; then
+  export __HM_ZSH_SESS_VARS_SOURCED=1
+fi

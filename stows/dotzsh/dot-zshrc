@@ -1,0 +1,62 @@
+# oh my zsh
+export LANG=en_US.UTF-8
+
+ZSH_THEME="jovial"
+
+plugins=(
+    bun
+    rust
+    volta
+    tailscale
+    fzf-tab
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+
+source $ZSH/oh-my-zsh.sh
+[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+
+eval "$(atuin init zsh)"
+eval "$(zoxide init zsh)"
+eval "$(pyenv init - zsh)"
+
+ex ()
+{
+  if [ -f $1 ] ; then
+    case $1 in
+      *.tar.bz2)   tar xjf $1   ;;
+      *.tar.gz)    tar xzf $1   ;;
+      *.bz2)       bunzip2 $1   ;;
+      *.rar)       unrar x $1   ;;
+      *.gz)        gunzip $1    ;;
+      *.tar)       tar xf $1    ;;
+      *.tbz2)      tar xjf $1   ;;
+      *.tgz)       tar xzf $1   ;;
+      *.zip)       unzip $1     ;;
+      *.Z)         uncompress $1;;
+      *.7z)        7z x $1      ;;
+      *.deb)       ar x $1      ;;
+      *.tar.xz)    tar xf $1    ;;
+      *.tar.zst)   unzstd $1    ;;
+      *)           echo "'$1' cannot be extracted via ex()" ;;
+    esac
+  else
+    echo "'$1' is not a valid file"
+  fi
+}
+
+
+# Aliases
+alias -- e='emacsclient --alternate-editor="" --create-frame --no-wait'
+alias -- fars='curl -F "c=@-" "http://fars.ee/"'
+alias -- flatpak-user='flatpak --user'
+alias -- ll='eza --time-style iso -m --group-directories-first --icons -al'
+alias -- ls='eza --time-style iso -m --group-directories-first --icons'
+alias -- rsync-copy='rsync -avz --progress -h'
+alias -- rsync-move='rsync -avz --progress -h --remove-source-files'
+alias -- rsync-synchronize='rsync -avzu --delete --progress -h'
+alias -- rsync-update='rsync -avzu --progress -h'
+alias -- user-restart='systemctl --user restart'
+alias -- user-start='systemctl --user start'
+alias -- user-status='systemctl --user status'
+alias -- user-stop='systemctl --user stop'
