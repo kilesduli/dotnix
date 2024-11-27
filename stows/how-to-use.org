@@ -11,6 +11,23 @@ stow -t /home/duli --dotfiles dotzsh
 sudo stow -t / keyd
 #+end_example
 ** fontconfig
+FIXME: flatpak symbolic link broken.
+#+begin_src bash
+cp ~/dotnix/stows/fontconfig/dot-config/fontconfig/* ~/.config/fontconfig/.
+#+end_src
+** user-dirs
 #+begin_example bash
-stow -t /home/duli --dotfiles fontconfig
+stow -t /home/duli --dotfiles user-dirs
+#+end_example
+** kitty
+#+begin_example bash
+stow -t /home/duli --dotfiles kitty
+#+end_example
+** ghostty
+#+begin_example bash
+stow -t /home/duli --dotfiles ghostty
+#+end_example
+** hidpi
+#+begin_example bash
+stow -t /home/duli --dotfiles hidpi
 #+end_example

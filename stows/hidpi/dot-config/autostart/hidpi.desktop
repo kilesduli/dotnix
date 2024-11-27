@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=HiDPI-Configuration
+GenericName=HiDPI-Configuration
+Comment=Configure HiDPI Fractional Scaling
+Exec=/usr/bin/bash -c 'if lsmod | grep amdgpu > /dev/null 2>&1; then xrandr --output eDP-1 --scale 1.5; else xrandr --output DP-4 --scale 1.5; fi'
+Terminal=false
+Type=Application
+X-GNOME-Autostart-enabled=true
