@@ -1,5 +1,5 @@
 # This file is encoded in UTF-8.  -*- coding: utf-8 -*-
-# The packaging files for this software package are forked from Fedora dist-git.
+# The spec file and related content for this software are forked from Fedora Dist-Git.
 # Source: https://src.fedoraproject.org/rpms/librime
 Name:           librime
 Epoch:          1
