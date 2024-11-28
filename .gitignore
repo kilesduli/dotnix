@@ -1,2 +1,7 @@
 # don't track home-manager build result (symbolic link)
 /result
+
+# rpm all build stuff
+/rpm/**/*.tar.gz
+/rpm/**/*.src.rpm
+/rpm/**/results*/
