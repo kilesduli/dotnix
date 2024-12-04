@@ -4,9 +4,9 @@ rustPlatform.buildRustPackage rec {
   inherit (source-emacs-lsp-booster) src;
 
   pname = "emacs-lsp-booster";
-  version = "0.2.1";
+  version = "0.2.1-unstable";
 
-  cargoHash = "sha256-CvIJ56QrIzQULFeXYQXTpX9PoGx1/DWtgwzfJ+mljEI=";
+  cargoHash = "sha256-abmXbnrP+At6ZdAkqckQ4lkV7Q6OMyHQicecDiJkESs=";
 
   # The tests contain what are essentially benchmarks—it seems prudent not to
   # stress our users' computers in that way every time they build the package.

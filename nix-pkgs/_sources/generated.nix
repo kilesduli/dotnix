@@ -3,15 +3,15 @@
 {
   source-emacs-lsp-booster = {
     pname = "source-emacs-lsp-booster";
-    version = "4200ed6ae0cd83b8e3fd1dbefb09121480951a22";
+    version = "59f42abb419829f5bcde103d0b18616779ea05f3";
     src = fetchFromGitHub {
       owner = "blahgeek";
       repo = "emacs-lsp-booster";
-      rev = "4200ed6ae0cd83b8e3fd1dbefb09121480951a22";
+      rev = "59f42abb419829f5bcde103d0b18616779ea05f3";
       fetchSubmodules = false;
-      sha256 = "sha256-KXfNy8H47EH9F8hC1iw1vpGsTx48fZ0MH9DNU9Jd2JQ=";
+      sha256 = "sha256-xAkYVzDf5fRUQQf3qZ5jicngPemfGdbDknjawlz/A+Q=";
     };
-    date = "2024-07-11";
+    date = "2024-11-30";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
