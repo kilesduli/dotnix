@@ -21,3 +21,7 @@ fetch.github = "blahgeek/emacs-lsp-booster"
 [source-zsh-jovial-theme]
 src.git = "https://github.com/zthxxx/jovial.git"
 fetch.github = "zthxxx/jovial"
+
+[source-emacs-master]
+src.git = "https://github.com/emacs-mirror/emacs.git"
+fetch.github = "emacs-mirror/emacs"

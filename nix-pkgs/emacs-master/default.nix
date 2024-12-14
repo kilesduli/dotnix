@@ -1,12 +1,14 @@
 { emacs-git
 , lib
-, xorg
 , ccacheStdenv
+, source-emacs-master
 , ...
 }:
-(emacs-git.override { stdenv = ccacheStdenv; withGTK3 = true; }).overrideAttrs (
+(emacs-git.override { stdenv = ccacheStdenv; withGTK3 = true; withXinput2 = false; }).overrideAttrs (
   old: {
-    buildInputs = lib.lists.remove xorg.libXi old.buildInputs;
-    configureFlags = lib.lists.remove "--with-xinput2" old.configureFlags ++ [ "--without-xim" ];
+    pname = "emacs-master";
+    name = "emacs-master-${builtins.concatStringsSep "" (lib.splitString "-" source-emacs-master.date)}";
+    inherit (source-emacs-master) src;
+    configureFlags = old.configureFlags ++ [ "--without-xim" ];
   }
 )

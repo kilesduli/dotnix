@@ -19,6 +19,26 @@
         },
         "version": "59f42abb419829f5bcde103d0b18616779ea05f3"
     },
+    "source-emacs-master": {
+        "cargoLocks": null,
+        "date": "2024-12-13",
+        "extract": null,
+        "name": "source-emacs-master",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "emacs-mirror",
+            "repo": "emacs",
+            "rev": "71cd290c20dbbd8b14f09818b3c1b58623aea350",
+            "sha256": "sha256-ARLWP2p9eX2IifaMh0OTotO374XNViTTo/HGn5G8ccg=",
+            "type": "github"
+        },
+        "version": "71cd290c20dbbd8b14f09818b3c1b58623aea350"
+    },
     "source-librime-charcode": {
         "cargoLocks": null,
         "date": "2024-03-19",
