@@ -39,6 +39,26 @@
         },
         "version": "71cd290c20dbbd8b14f09818b3c1b58623aea350"
     },
+    "source-emacs-master-igc": {
+        "cargoLocks": null,
+        "date": "2024-12-13",
+        "extract": null,
+        "name": "source-emacs-master-igc",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "emacs-mirror",
+            "repo": "emacs",
+            "rev": "cedb01b6c9c68051e00426415e21a960fdc3de76",
+            "sha256": "sha256-/fQoniL649rsHHaCsAmROHeGUv5bAhZoDA82wgttNac=",
+            "type": "github"
+        },
+        "version": "cedb01b6c9c68051e00426415e21a960fdc3de76"
+    },
     "source-librime-charcode": {
         "cargoLocks": null,
         "date": "2024-03-19",

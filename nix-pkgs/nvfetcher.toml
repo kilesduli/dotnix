@@ -25,3 +25,8 @@ fetch.github = "zthxxx/jovial"
 [source-emacs-master]
 src.git = "https://github.com/emacs-mirror/emacs.git"
 fetch.github = "emacs-mirror/emacs"
+
+[source-emacs-master-igc]
+src.git = "https://github.com/emacs-mirror/emacs.git"
+src.branch = "scratch/igc"
+fetch.github = "emacs-mirror/emacs"

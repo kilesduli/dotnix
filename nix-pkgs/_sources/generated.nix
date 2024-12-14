@@ -25,6 +25,18 @@
     };
     date = "2024-12-13";
   };
+  source-emacs-master-igc = {
+    pname = "source-emacs-master-igc";
+    version = "cedb01b6c9c68051e00426415e21a960fdc3de76";
+    src = fetchFromGitHub {
+      owner = "emacs-mirror";
+      repo = "emacs";
+      rev = "cedb01b6c9c68051e00426415e21a960fdc3de76";
+      fetchSubmodules = false;
+      sha256 = "sha256-/fQoniL649rsHHaCsAmROHeGUv5bAhZoDA82wgttNac=";
+    };
+    date = "2024-12-13";
+  };
   source-librime-charcode = {
     pname = "source-librime-charcode";
     version = "55e7f563e999802d41a13ba02657c1be4b2011b4";
