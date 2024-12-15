@@ -41,7 +41,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, flake-utils, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, ... }@inputs:
     let
       system = "x86_64-linux";
       lib = inputs.nixpkgs.lib;
