@@ -45,6 +45,7 @@
     let
       system = "x86_64-linux";
       lib = inputs.nixpkgs.lib;
+
       # use nix offcial lib make it easy to use;
       selfhostpkgs = final: prev:
         let sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { }; _source = prev._sources; in
@@ -52,11 +53,11 @@
           callPackage = prev.lib.callPackageWith (prev // sources);
           directory = ./nix-pkgs;
         }) // { _sources = _source; };
+
       overlays = [
         inputs.emacs-overlay.overlay
         inputs.nixgl.overlay
         selfhostpkgs
-        (import ./nix-chore/ccache.nix)
       ];
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
     in
