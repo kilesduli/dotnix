@@ -45,7 +45,9 @@
     let
       system = "x86_64-linux";
 
-      # use nix offcial lib make it easy to use;
+      # This overlay do:
+      #   * call all packages definition in ./nix-pkgs and merge into pkgs.
+      #   * remove _sources in overlay sets
       nix-pkgs = final: prev:
         let
           sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { };
@@ -56,12 +58,15 @@
         in
         prev.lib.removeAttrs packages [ "_sources" ];
 
+      # This overlay do:
+      #   * merge inputs.xxxxx.packages."${system}" into pkgs
+      #   * if only have packages."${system}".default, rename to xxxxx(inputs name)
       merge-inputs-packages = inputs: final: prev:
         with prev.lib;
         let
           inputs-packages = name: value:
             let
-              isOnlyDefault = packages: (length (attrNames packages) == 1) && hasAttr "default" packages ;
+              isOnlyDefault = packages: (length (attrNames packages) == 1) && hasAttr "default" packages;
               packages = value.packages."${system}";
             in
             if isOnlyDefault packages
