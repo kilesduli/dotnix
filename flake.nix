@@ -57,18 +57,18 @@
         prev.lib.removeAttrs packages [ "_sources" ];
 
       merge-inputs-packages = inputs: final: prev:
+        with prev.lib;
         let
           inputs-packages = name: value:
             let
-              isOnlyDefault = packages: (with builtins; length (attrNames packages) == 1) && packages.getAttr "default" packages;
+              isOnlyDefault = packages: (length (attrNames packages) == 1) && hasAttr "default" packages ;
               packages = value.packages."${system}";
             in
             if isOnlyDefault packages
-            then { name = packages.default; }
-            else prev.lib.removeAttrs packages [ "default" ];
-          packagesList = prev.lib.mapAttrsToList inputs-packages inputs;
+            then { "${name}" = packages.default; }
+            else removeAttrs packages [ "default" ];
         in
-        prev.lib.mergeAttrsList packagesList;
+        mergeAttrsList (mapAttrsToList inputs-packages inputs);
 
       overlays = [
         inputs.emacs-overlay.overlay
