@@ -56,11 +56,29 @@
         in
         prev.lib.removeAttrs packages [ "_sources" ];
 
+      merge-inputs-packages = inputs: final: prev:
+        let
+          inputs-packages = name: value:
+            let
+              isOnlyDefault = packages: (with builtins; length (attrNames packages) == 1) && packages.getAttr "default" packages;
+              packages = value.packages."${system}";
+            in
+            if isOnlyDefault packages
+            then { name = packages.default; }
+            else prev.lib.removeAttrs packages [ "default" ];
+          packagesList = prev.lib.mapAttrsToList inputs-packages inputs;
+        in
+        prev.lib.mergeAttrsList packagesList;
+
       overlays = [
         inputs.emacs-overlay.overlay
         inputs.nixgl.overlay
         nix-pkgs
+        (merge-inputs-packages {
+          inherit (inputs) ghostty;
+        })
       ];
+
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
       lib = pkgs.lib;
     in
