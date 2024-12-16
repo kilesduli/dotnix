@@ -48,11 +48,13 @@
 
       # use nix offcial lib make it easy to use;
       selfhostpkgs = final: prev:
-        let sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { }; _source = prev._sources; in
-        (prev.lib.packagesFromDirectoryRecursive {
+        let
+          sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { };
+        in
+        prev.lib.removeAttrs (prev.lib.packagesFromDirectoryRecursive {
           callPackage = prev.lib.callPackageWith (prev // sources);
           directory = ./nix-pkgs;
-        }) // { _sources = _source; };
+        }) [ "_sources" ];
 
       overlays = [
         inputs.emacs-overlay.overlay
