@@ -87,7 +87,7 @@
         kdePackages.fcitx5-qt
 
         # zig
-        self.inputs.ghostty.packages.x86_64-linux.default
+        ghostty
       ];
 
     file = { };
