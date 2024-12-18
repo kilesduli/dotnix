@@ -45,18 +45,19 @@
     let
       system = "x86_64-linux";
 
+      lib = inputs.nixpkgs.lib // import ./nix-pkgs/lib.nix { inherit (inputs.nixpkgs) lib; inherit system; };
+
       # This overlay do:
       #   * call all packages definition in ./nix-pkgs and merge into pkgs.
       #   * remove _sources in overlay sets
       nix-pkgs = final: prev:
         let
           sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { };
-          packages = prev.lib.packagesFromDirectoryRecursive {
-            callPackage = prev.lib.callPackageWith (prev // sources);
-            directory = ./nix-pkgs;
-          };
         in
-        prev.lib.removeAttrs packages [ "_sources" ];
+        lib.callPackageFromDirectory {
+          callPackage = prev.lib.callPackageWith (prev // sources);
+          directory = ./nix-pkgs;
+        };
 
       # This overlay do:
       #   * merge inputs.xxxxx.packages."${system}" into pkgs
@@ -85,7 +86,6 @@
       ];
 
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
-      lib = pkgs.lib;
     in
     {
       homeConfigurations.duli = home-manager.lib.homeManagerConfiguration {
