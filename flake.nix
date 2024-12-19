@@ -48,8 +48,7 @@
       lib = inputs.nixpkgs.lib // import ./nix-pkgs/lib.nix { inherit (inputs.nixpkgs) lib; inherit system; };
 
       # This overlay do:
-      #   * call all packages definition in ./nix-pkgs and merge into pkgs.
-      #   * remove _sources in overlay sets
+      #   * call all packages definition in ./nix-pkgs use callPackageFromDirectory
       nix-pkgs = final: prev:
         let
           sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { };
