@@ -76,7 +76,7 @@
         mergeAttrsList (mapAttrsToList inputs-packages inputs);
 
       overlays = [
-        inputs.emacs-overlay.overlay
+        inputs.emacs-overlay.overlays.package
         inputs.nixgl.overlay
         nix-pkgs
         (merge-inputs-packages {

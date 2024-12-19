@@ -1,11 +1,11 @@
-{ emacs-git
+{ emacs30
 , lib
 , ccacheStdenv
 , source-emacs-master-igc
 , mps
 , ...
 }:
-(emacs-git.override { stdenv = ccacheStdenv; withGTK3 = true; withXinput2 = false; }).overrideAttrs (
+(emacs30.override { stdenv = ccacheStdenv; withGTK3 = true; withXinput2 = false; }).overrideAttrs (
   old: {
     pname = "emacs-master-igc";
     name = "emacs-master-igc-${builtins.concatStringsSep "" (lib.splitString "-" source-emacs-master-igc.date)}";
