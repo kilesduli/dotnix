@@ -99,5 +99,10 @@
         # to pass through arguments to home.nix
         extraSpecialArgs = { inherit self; };
       };
+
+      packages."${system}" = {
+        emacs-master = pkgs.emacs-master;
+        emacs-master-igc = pkgs.emacs-master-igc;
+      };
     };
 }
