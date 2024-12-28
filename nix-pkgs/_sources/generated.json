@@ -15,6 +15,7 @@
             "repo": "emacs-lsp-booster",
             "rev": "59f42abb419829f5bcde103d0b18616779ea05f3",
             "sha256": "sha256-xAkYVzDf5fRUQQf3qZ5jicngPemfGdbDknjawlz/A+Q=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "59f42abb419829f5bcde103d0b18616779ea05f3"
@@ -35,6 +36,7 @@
             "repo": "emacs",
             "rev": "43b81b7ecaf465eef268dd2cd94f00a0c4da87ea",
             "sha256": "sha256-CDUAE8apvejLrbWk9KdKkJNlt8OXpAsVcLqev97TJLE=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "43b81b7ecaf465eef268dd2cd94f00a0c4da87ea"
@@ -55,6 +57,7 @@
             "repo": "emacs",
             "rev": "eedd4b7427d4f8d75d63cf68cc1cdfc851d6883b",
             "sha256": "sha256-mga3F006GOTKFJ1QpQ1gUmM3Hw6Wpj2WFB5Qq7lf39Y=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "eedd4b7427d4f8d75d63cf68cc1cdfc851d6883b"
@@ -75,6 +78,7 @@
             "repo": "librime-charcode",
             "rev": "55e7f563e999802d41a13ba02657c1be4b2011b4",
             "sha256": "sha256-KfKkpph+2ChQpkkGKubmpg/18uPX9qUHTqJT1PSGorI=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "55e7f563e999802d41a13ba02657c1be4b2011b4"
@@ -95,6 +99,7 @@
             "repo": "librime-lua",
             "rev": "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6",
             "sha256": "sha256-zx0F41szn5qlc2MNjt1vizLIsIFQ67fp5cb8U8UUgtY=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6"
@@ -115,6 +120,7 @@
             "repo": "librime-octagram",
             "rev": "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8",
             "sha256": "sha256-dgUsH10V87mEcX/k3N118qbKo3fKDFcS8inhS6p5bJc=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8"
@@ -135,6 +141,7 @@
             "repo": "librime-proto",
             "rev": "657a923cd4c333e681dc943e6894e6f6d42d25b4",
             "sha256": "sha256-HdypebfmzreSdEQBwbvRG6sJZPASP+e8Tew+GrMnpOQ=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
@@ -155,6 +162,7 @@
             "repo": "jovial",
             "rev": "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b",
             "sha256": "sha256-KTsrbHDACFiIn1mWOwphFb4NaBqZKrqloZ2K8mnzqpc=",
+            "sparseCheckout": [],
             "type": "github"
         },
         "version": "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b"
