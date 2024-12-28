@@ -30,3 +30,7 @@ fetch.github = "emacs-mirror/emacs"
 src.git = "https://github.com/emacs-mirror/emacs.git"
 src.branch = "scratch/igc"
 fetch.github = "emacs-mirror/emacs"
+
+[source-spicetify-cli]
+src.git = "https://github.com/spicetify/cli"
+fetch.github = "spicetify/cli"

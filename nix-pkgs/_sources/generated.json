@@ -146,6 +146,27 @@
         },
         "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
     },
+    "source-spicetify-cli": {
+        "cargoLocks": null,
+        "date": "2024-12-21",
+        "extract": null,
+        "name": "source-spicetify-cli",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "spicetify",
+            "repo": "cli",
+            "rev": "01f5cc5427627d83f08f16ad9fec9f1e69636532",
+            "sha256": "sha256-2fsHFl5t/Xo7W5IHGc5FWY92JvXjkln6keEn4BZerw4=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "01f5cc5427627d83f08f16ad9fec9f1e69636532"
+    },
     "source-zsh-jovial-theme": {
         "cargoLocks": null,
         "date": "2024-07-14",
