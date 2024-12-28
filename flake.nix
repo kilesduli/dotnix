@@ -78,6 +78,7 @@
       overlays = [
         inputs.emacs-overlay.overlays.package
         inputs.nixgl.overlay
+        inputs.nvfetcher.overlays.default
         nix-pkgs
         (merge-inputs-packages {
           inherit (inputs) ghostty;
