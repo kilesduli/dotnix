@@ -1,3 +1,4 @@
+# -*- mode: sh -*-
 # oh my zsh
 export LANG=en_US.UTF-8
 
