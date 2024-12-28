@@ -24,8 +24,27 @@ export LSP_USE_PLISTS="true"
 export PYENV_ROOT="$HOME/.pyenv"
 
 # PATH
-export PATH="$PATH${PATH:+:}$GOPATH/bin:$BUN_INSTALL/bin:$VOLTA_HOME/bin:$HOME/.cargo/bin:$HOME/.emacs.d/bin"
+prepend_paths=(
+  "$HOME/.cargo/bin"
+)
 
+append_paths=(
+  "/opt/clojure/bin"
+  "$GOPATH/bin"
+  "$BUN_INSTALL/bin"
+  "$VOLTA_HOME/bin"
+  $HOME/.emacs.d/bin
+)
+
+for p in "${prepend_paths[@]}"; do
+  PATH="${p}:${PATH}"
+done
+
+for p in "${append_paths[@]}"; do
+  PATH="${PATH}:${p}"
+done
+
+export PATH
 
 # Environment variables for nix
 . "/home/duli/.nix-profile/etc/profile.d/hm-session-vars.sh"
