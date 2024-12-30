@@ -1,6 +1,7 @@
 command = zsh
 
-font-family = JetBrains Mono
+# This is not work when fontconfig strong prepend a font
+# font-family = JetBrains Mono
 font-size = 11
 font-feature = ss02
 
@@ -25,11 +26,8 @@ palette = 12=#589df6
 palette = 13=#e75699
 palette = 14=#3979bc
 palette = 15=#ffffff
-background = 1d2837
-foreground = ffffff
-cursor-color = ffffff
-selection-background = bbbbbb
-selection-foreground = ffffff
-
-
- 
+background = #1d2837
+foreground = #ffffff
+cursor-color = #ffffff
+selection-background = #bbbbbb
+selection-foreground = #ffffff
