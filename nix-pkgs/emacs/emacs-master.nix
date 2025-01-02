@@ -24,6 +24,7 @@ in
     [
       "--with-x-toolkit=no"
       "--without-cairo"
+      "--without-xim"
     ];
   }
 )

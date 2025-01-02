@@ -26,6 +26,7 @@ in
       "--with-x-toolkit=no"
       "--without-cairo"
       "--with-mps=yes"
+      "--without-xim"
     ];
   }
 )
