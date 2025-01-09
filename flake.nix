@@ -101,8 +101,9 @@
       };
 
       packages."${system}" = {
-        emacs-master = pkgs.emacs-master;
-        emacs-master-igc = pkgs.emacs-master-igc;
+        # boost build time
+        emacs-master-test = pkgs.emacs-master.override { withNativeCompilation = false; };
+        emacs-master-igc-test = pkgs.emacs-master-igc.override {  withNativeCompilation = false; };
       };
     };
 }
