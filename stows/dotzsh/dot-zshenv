@@ -23,9 +23,14 @@ export LSP_USE_PLISTS="true"
 # pyenv
 export PYENV_ROOT="$HOME/.pyenv"
 
+# dotnet
+export DOTNET_ROOT="$HOME/.dotnet"
+
 # PATH
 prepend_paths=(
   "$HOME/.cargo/bin"
+  "$DOTNET_ROOT"
+  "$DOTNET_ROOT/tools"
 )
 
 append_paths=(
