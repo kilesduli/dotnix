@@ -28,13 +28,13 @@
         gore
         gotests
 
-        # nix related
+        # nix
         nixd
         nixpkgs-fmt
         nix-output-monitor
         nvfetcher
 
-        # gui tools
+        # gui tools and sofeware
         menulibre
         pavucontrol
         screenkey
@@ -50,6 +50,7 @@
         librime-with-plugins
         xclip
         emacs-lsp-booster
+        tdlib
 
         # scheme
         chez
