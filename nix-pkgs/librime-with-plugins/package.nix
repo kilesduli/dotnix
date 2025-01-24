@@ -1,5 +1,5 @@
 { librime
-, lua54Packages
+, luajit
 , source-librime-charcode
 , source-librime-lua
 , source-librime-octagram
@@ -25,7 +25,7 @@
   ];
 }).overrideAttrs
   (old: {
-    buildInputs = (old.buildInputs or [ ]) ++ [ lua54Packages.lua ];
+    buildInputs = (old.buildInputs or [ ]) ++ [ luajit ];
 
     meta = old.meta // {
       description = "Librime with plugins (librime-charcode, librime-lua, librime-octagram, librime-proto)";
