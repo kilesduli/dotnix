@@ -1,0 +1,37 @@
+From cf90e8d16de2662991c24381c02bb76a14949b0f Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Sat, 25 Jan 2025 03:05:23 +0800
+Subject: [PATCH] fix: do not generate deepClone option
+
+nix will assert leaveDotGit and deepClone are same. hash generate will failure.
+---
+ src/NvFetcher/NixExpr.hs | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/src/NvFetcher/NixExpr.hs b/src/NvFetcher/NixExpr.hs
+index 022256b..c6c9443 100644
+--- a/src/NvFetcher/NixExpr.hs
++++ b/src/NvFetcher/NixExpr.hs
+@@ -95,7 +95,18 @@ nixFetcher = \case
+     } ->
+       -- TODO: fix fetchFromGitHub in Nixpkgs so that deepClone, leaveDotGit
+       -- and sparseCheckout won't get passed to fetchzip
+-      if (deepClone == "true") || (leaveDotGit == "true") || (sparseCheckout /= "[ ]")
++      if (fetchSubmodules == "true") && (deepClone == "true") && (leaveDotGit == "false")
++      then
++          [trimming|
++               fetchFromGitHub {
++                 owner = $owner;
++                 repo = $repo;
++                 rev = $rev;
++                 fetchSubmodules = $fetchSubmodules;
++                 sha256 = $sha256;
++               }
++         |]
++      else if (deepClone == "true") || (leaveDotGit == "true") || (sparseCheckout /= "[ ]")
+         then
+           [trimming|
+                fetchFromGitHub {
+-- 
+2.48.1
+
