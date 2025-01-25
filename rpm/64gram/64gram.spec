@@ -6,14 +6,15 @@
 %endif
 
 # Telegram Desktop's constants...
-%global appname tdesktop
+%global appname 64Gram
 
 # Reducing debuginfo verbosity...
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 
-Name: telegram-desktop
-Version: 5.10.3
-Release: 1%{?dist}
+Name:           64gram-desktop
+Epoch:          1
+Version:        1.1.58
+Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
 # * Telegram Desktop - GPL-3.0-or-later with OpenSSL exception -- main tarball;
@@ -23,10 +24,13 @@ Release: 1%{?dist}
 # * qt_functions.cpp - LGPL-3.0-only -- build-time dependency;
 # * open-sans-fonts  - Apache-2.0 -- bundled font;
 # * vazirmatn-fonts - OFL-1.1 -- bundled font.
-License: GPL-3.0-or-later AND BSD-3-Clause AND BSD-2-Clause AND Apache-2.0 AND MIT AND LicenseRef-Fedora-Public-Domain AND LGPL-2.1-or-later AND FTL AND MPL-1.1 AND LGPL-3.0-only AND OFL-1.1
-URL: https://github.com/telegramdesktop/%{appname}
-Summary: Telegram Desktop official messaging app
-Source0: %{url}/releases/download/v%{version}/%{appname}-%{version}-full.tar.gz
+License:        GPL-3.0-or-later AND BSD-3-Clause AND BSD-2-Clause AND Apache-2.0 AND MIT AND LicenseRef-Fedora-Public-Domain AND LGPL-2.1-or-later AND FTL AND MPL-1.1 AND LGPL-3.0-only AND OFL-1.1
+URL:            https://github.com/TDesktop-x64/tdesktop
+Summary:        Unofficial Telegram Desktop providing Windows 64bit build and extra features
+Source0:        %{name}-%{version}.tar.gz
+Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0001-Disable-sponsored-messages.patch
+Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0002-Disable-saving-restrictions.patch
+Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0003-Disable-invite-peeking-restrictions.patch
 
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
@@ -138,7 +142,7 @@ business messaging needs.
 
 %prep
 # Unpacking Telegram Desktop source archive...
-%autosetup -n %{appname}-%{version}-full -p1
+%autosetup -p1
 
 # Unbundling libraries... except minizip
 rm -rf Telegram/ThirdParty/{QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,jemalloc,kimageformats,lz4,nimf,range-v3,xxHash}
@@ -176,9 +180,9 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %files
 %doc README.md changelog.txt
 %license LICENSE LEGAL
-%{_bindir}/%{name}
+%{_bindir}/telegram-desktop
 %{_datadir}/applications/*.desktop
 %{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/icons/hicolor/*/apps/*.svg
-%{_datadir}/dbus-1/services/org.telegram.desktop.service
+%{_datadir}/dbus-1/services/*.service
 %{_metainfodir}/*.metainfo.xml
