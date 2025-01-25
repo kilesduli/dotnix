@@ -1,7 +1,7 @@
 Index: librime-1.12.0/src/rime/setup.cc
 ===================================================================
---- librime-1.12.0.orig/src/rime/setup.cc
-+++ librime-1.12.0/src/rime/setup.cc
+--- a/src/rime/setup.cc
++++ b/src/rime/setup.cc
 @@ -9,6 +9,12 @@
  
  #ifdef RIME_ENABLE_LOGGING
