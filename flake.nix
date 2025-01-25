@@ -79,10 +79,10 @@
         inputs.emacs-overlay.overlays.package
         inputs.nixgl.overlay
         inputs.nvfetcher.overlays.default
-        nix-pkgs
         (merge-inputs-packages {
           inherit (inputs) ghostty;
         })
+        nix-pkgs
       ];
 
       pkgs = import nixpkgs { inherit system overlays; config.allowUnfree = true; };
