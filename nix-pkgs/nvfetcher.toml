@@ -34,3 +34,14 @@ fetch.github = "emacs-mirror/emacs"
 [source-spicetify-cli]
 src.git = "https://github.com/spicetify/cli"
 fetch.github = "spicetify/cli"
+
+[source-64gram]
+src.git = "https://github.com/TDesktop-x64/tdesktop"
+fetch.github = "TDesktop-x64/tdesktop"
+# These three options must be set together
+git.fetchSubmodules = true
+git.deepClone = true
+
+[patches-telegram]
+src.git = "https://github.com/Layerex/telegram-desktop-patches"
+fetch.github = "Layerex/telegram-desktop-patches"

@@ -1,4 +1,46 @@
 {
+    "patches-telegram": {
+        "cargoLocks": null,
+        "date": "2025-01-10",
+        "extract": null,
+        "name": "patches-telegram",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": false,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "Layerex",
+            "repo": "telegram-desktop-patches",
+            "rev": "36e27074851c64e52706adc606d1a9bfc12a3194",
+            "sha256": "sha256-TRtlh/ExnS4li1JVgreRguboUZeLe8hH4RiJCPobPNw=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "36e27074851c64e52706adc606d1a9bfc12a3194"
+    },
+    "source-64gram": {
+        "cargoLocks": null,
+        "date": "2025-01-11",
+        "extract": null,
+        "name": "source-64gram",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": true,
+            "fetchSubmodules": true,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "TDesktop-x64",
+            "repo": "tdesktop",
+            "rev": "547bba18dfaceb3888d60ac1d2c16d0b7acdad46",
+            "sha256": "sha256-RHybrvm5p8BUt5StT/NuR76f2y1CCICirTMjdeRLtkY=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "547bba18dfaceb3888d60ac1d2c16d0b7acdad46"
+    },
     "source-emacs-lsp-booster": {
         "cargoLocks": null,
         "date": "2025-01-07",
@@ -34,12 +76,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "07a2a67e3bfd674daad7a7d8947a0ab67b4e13e8",
-            "sha256": "sha256-eBru6cFsYZwiH7ITxzcAI8bGZUN6qo9efJqNxcqHw7Y=",
+            "rev": "a00e6e7143d5ebf7282b5e5b410e1bd882634d57",
+            "sha256": "sha256-Ydf51Y0n+MvCUZFB6MyuWTC32vRBLvHWW8Ht5VsqI0M=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "07a2a67e3bfd674daad7a7d8947a0ab67b4e13e8"
+        "version": "a00e6e7143d5ebf7282b5e5b410e1bd882634d57"
     },
     "source-emacs-master-igc": {
         "cargoLocks": null,
@@ -148,7 +190,7 @@
     },
     "source-spicetify-cli": {
         "cargoLocks": null,
-        "date": "2024-12-21",
+        "date": "2025-01-24",
         "extract": null,
         "name": "source-spicetify-cli",
         "passthru": null,
@@ -160,12 +202,12 @@
             "name": null,
             "owner": "spicetify",
             "repo": "cli",
-            "rev": "01f5cc5427627d83f08f16ad9fec9f1e69636532",
-            "sha256": "sha256-2fsHFl5t/Xo7W5IHGc5FWY92JvXjkln6keEn4BZerw4=",
+            "rev": "cfda93b30bcdab47dca26b5f0570dae8b0c8660d",
+            "sha256": "sha256-v926mpvKhEB8eQmE8hDPhRQq6Odt5hV8nRvGe3nRvY0=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "01f5cc5427627d83f08f16ad9fec9f1e69636532"
+        "version": "cfda93b30bcdab47dca26b5f0570dae8b0c8660d"
     },
     "source-zsh-jovial-theme": {
         "cargoLocks": null,
