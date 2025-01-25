@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+name=$1
+mock_config=$2
+result_base=$3
+
+
+if [[ -z $name ]]; then
+    echo "This script requires the name as an argument."
+    exit 1
+fi
+
+if [[ -z $mock_config ]]; then
+    echo "This script requires the mock_config as an argument."
+    exit 1
+fi
+
+if [[ -z $result_base ]]; then
+    echo "This script requires the result_base as an argument."
+    exit 1
+fi
+
+
+set -euo pipefail
+
+rm -rf /tmp/$name
+mkdir -p /tmp/$name
+rpkg srpm --spec $name.spec --outdir /tmp/$name
+mock -r $mock_config /tmp/$name/$name-*.src.rpm --resultdir $result_base/result

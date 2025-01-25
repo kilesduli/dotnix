@@ -31,3 +31,7 @@ stow -t /home/duli --dotfiles ghostty
 #+begin_example bash
 stow -t /home/duli --dotfiles hidpi
 #+end_example
+** script
+#+begin_example bash
+stow -t /home/duli --dotfiles script
+#+end_example
