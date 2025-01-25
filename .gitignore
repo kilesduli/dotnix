@@ -5,3 +5,5 @@
 /rpm/**/*.tar.gz
 /rpm/**/*.src.rpm
 /rpm/**/results*/
+/**/result
+/**/result_srpm
