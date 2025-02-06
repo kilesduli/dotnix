@@ -39,27 +39,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "a00e6e7143d5ebf7282b5e5b410e1bd882634d57";
+    version = "1f4a26df862917c956e79fc2ca111caebf895623";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "a00e6e7143d5ebf7282b5e5b410e1bd882634d57";
+      rev = "1f4a26df862917c956e79fc2ca111caebf895623";
       fetchSubmodules = false;
-      sha256 = "sha256-Ydf51Y0n+MvCUZFB6MyuWTC32vRBLvHWW8Ht5VsqI0M=";
+      sha256 = "sha256-W24Afqbg9DOz6KkLx8oSrVw3CwDUeqprOzSRmc2Gm7c=";
     };
-    date = "2025-01-24";
+    date = "2025-02-05";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "7146d10b4625043d8e36dd91ff1574568158dc55";
+    version = "aa915b0c87e42444ee5426744df18c3b15ac0cf5";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "7146d10b4625043d8e36dd91ff1574568158dc55";
+      rev = "aa915b0c87e42444ee5426744df18c3b15ac0cf5";
       fetchSubmodules = false;
-      sha256 = "sha256-rwGQnRPrhTdiVE37jb83LWaCONpW9aZ1E+/yaMrBw10=";
+      sha256 = "sha256-yFHSGDl7yR9eUd3a9Fjsh5RHmVgbC1dKve76AhG4dpU=";
     };
-    date = "2025-01-23";
+    date = "2025-02-05";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -111,26 +111,26 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "cfda93b30bcdab47dca26b5f0570dae8b0c8660d";
+    version = "7a53725144472b7e66bf2c3d0a0082715847ea48";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "cfda93b30bcdab47dca26b5f0570dae8b0c8660d";
+      rev = "7a53725144472b7e66bf2c3d0a0082715847ea48";
       fetchSubmodules = false;
-      sha256 = "sha256-v926mpvKhEB8eQmE8hDPhRQq6Odt5hV8nRvGe3nRvY0=";
+      sha256 = "sha256-OvWCiR5TZEtOa2vkBBWeQKP80ZgElunrWQe6+oGvNcw=";
     };
-    date = "2025-01-24";
+    date = "2025-02-06";
   };
   source-zsh-jovial-theme = {
     pname = "source-zsh-jovial-theme";
-    version = "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b";
+    version = "b5b146ec99f2b33c56a51be8d49ec9915ca205a6";
     src = fetchFromGitHub {
       owner = "zthxxx";
       repo = "jovial";
-      rev = "6cedfe232c55b7f0bc599e0bd328f01bfe55b29b";
+      rev = "b5b146ec99f2b33c56a51be8d49ec9915ca205a6";
       fetchSubmodules = false;
-      sha256 = "sha256-KTsrbHDACFiIn1mWOwphFb4NaBqZKrqloZ2K8mnzqpc=";
+      sha256 = "sha256-KxZnA/ek07hb7Vo+LvnALGu669VvcREi/+279TXYOl8=";
     };
-    date = "2024-07-14";
+    date = "2024-12-14";
   };
 }
