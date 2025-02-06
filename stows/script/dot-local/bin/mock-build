@@ -1,29 +1,54 @@
 #!/usr/bin/env bash
 
-name=$1
-mock_config=$2
-result_base=$3
+shopt -s nullglob
 
-
-if [[ -z $name ]]; then
-    echo "This script requires the name as an argument."
-    exit 1
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    mock_config="$ID-$VERSION_ID-x86_64"
 fi
 
-if [[ -z $mock_config ]]; then
-    echo "This script requires the mock_config as an argument."
-    exit 1
-fi
+spec_files=(*.spec)
+current_dir=$(pwd)
 
-if [[ -z $result_base ]]; then
-    echo "This script requires the result_base as an argument."
-    exit 1
-fi
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -n) name="$2"; shift 2;;
+        -o) result_dir="$2"; shift 2;;
+        -m) mock_config="$2"; shift 2;;
 
+        --) shift; break;;
+        -*) echo "unknown option: $1" >&2; exit 1;;
+    esac
+done
 
 set -euo pipefail
 
+if [[ -n ${name:-} && -e $name.spec ]]; then
+    spec_file=$name.spec
+elif [[ -n ${name:-} ]]; then
+    echo "Error: ${name:-}.spec not exist"
+    exit 1
+fi
+
+if [[ ${#spec_files[@]} -lt 1  ]]; then
+    echo "Error: no .spec files found, exit"
+    exit 1
+elif [[ ${#spec_files[@]} -gt 1 && -z "${name:-}" ]]; then
+    echo "Error: Multiple .spec files found, but -n is not specified." >&2
+    exit 1
+elif [[ -z ${name:-} ]]; then
+    spec_file=$spec_files
+    name=${spec_file%.spec}
+fi
+
+echo "+ spec_file=$spec_file"
+echo "+ mock_config=$mock_config"
+echo "+ current_dir=$current_dir"
+echo "+ package_name=$name"
+
+echo "+ remaining_args: $@"
+
 rm -rf /tmp/$name
 mkdir -p /tmp/$name
-rpkg srpm --spec $name.spec --outdir /tmp/$name
-mock -r $mock_config /tmp/$name/$name-*.src.rpm --resultdir $result_base/result
+rpkg srpm --spec $spec_file --outdir /tmp/$name
+mock -r $mock_config /tmp/$name/$name-*.src.rpm --resultdir ${result_dir:-${current_dir}/result} "$@"
