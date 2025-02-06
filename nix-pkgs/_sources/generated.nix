@@ -111,15 +111,14 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "7a53725144472b7e66bf2c3d0a0082715847ea48";
+    version = "v2.39.0";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "7a53725144472b7e66bf2c3d0a0082715847ea48";
+      rev = "v2.39.0";
       fetchSubmodules = false;
       sha256 = "sha256-OvWCiR5TZEtOa2vkBBWeQKP80ZgElunrWQe6+oGvNcw=";
     };
-    date = "2025-02-06";
   };
   source-zsh-jovial-theme = {
     pname = "source-zsh-jovial-theme";

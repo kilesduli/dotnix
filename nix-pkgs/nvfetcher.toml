@@ -32,7 +32,7 @@ src.branch = "feature/igc"
 fetch.github = "emacs-mirror/emacs"
 
 [source-spicetify-cli]
-src.git = "https://github.com/spicetify/cli"
+src.github = "spicetify/cli"
 fetch.github = "spicetify/cli"
 
 [source-64gram]
