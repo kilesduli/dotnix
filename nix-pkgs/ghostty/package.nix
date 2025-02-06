@@ -1,5 +1,6 @@
-{ ghostty,
+{ ghostty
+, ...
 }:
 ghostty.overrideAttrs (old: {
-  zigBuildFlags = old.zigBuildFlags or "" + " -fsys=fontconfig";
+  zigBuildFlags = old.zigBuildFlags ++ [ "-fsys=fontconfig" ];
 })
