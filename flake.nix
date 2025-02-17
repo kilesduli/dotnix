@@ -102,8 +102,8 @@
 
       packages."${system}" = {
         # boost build time
-        emacs-master-test = pkgs.emacs-master.override { withNativeCompilation = false; };
-        emacs-master-igc-test = pkgs.emacs-master-igc.override {  withNativeCompilation = false; };
+        emacs-lucid-with-igc-test = pkgs.emacs-master-lucid-with-igc.override { withNativeCompilation = false; };
+        emacs-no-toolkit-test = pkgs.emacs-master-no-toolkit.override {  withNativeCompilation = false; };
       };
     };
 }
