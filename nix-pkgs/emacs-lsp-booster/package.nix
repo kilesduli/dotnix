@@ -17,7 +17,6 @@ rustPlatform.buildRustPackage rec {
     homepage = "https://github.com/${src.owner}/${pname}";
     changelog = "https://github.com/${src.owner}/${pname}/releases/tag/${version}";
     license = [ licenses.mit ];
-    maintainers = [];
     mainProgram = "emacs-lsp-booster";
   };
 }

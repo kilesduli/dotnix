@@ -100,7 +100,7 @@
         extraSpecialArgs = { inherit self; };
       };
 
-      packages."${system}" = {
+      packages."${system}" = pkgs // {
         # boost build time
         emacs-lucid-with-igc-test = pkgs.emacs-master-lucid-with-igc.override { withNativeCompilation = false; };
         emacs-no-toolkit-test = pkgs.emacs-master-no-toolkit.override {  withNativeCompilation = false; };

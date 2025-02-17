@@ -1,7 +1,7 @@
 { self, config, lib, pkgs, ... }:
 
 let
-  emacs = pkgs.emacs-master-igc;
+  emacs = pkgs.emacs-master-lucid-with-igc;
 in
 {
   # the programs.emacs has warp that cause no include dir
