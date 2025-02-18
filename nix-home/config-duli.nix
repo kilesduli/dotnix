@@ -40,7 +40,7 @@
         screenkey
         vial
         vscode
-        calibre-enhanced
+        calibre
         sioyek
 
         # openGL related fix
