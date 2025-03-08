@@ -15,27 +15,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "d80ac0fbaa09826342a9818014ae950acc7c0c03";
+    version = "02f9b525fc2188a57ff36ec38a60fa0032e2e547";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "d80ac0fbaa09826342a9818014ae950acc7c0c03";
+      rev = "02f9b525fc2188a57ff36ec38a60fa0032e2e547";
       fetchSubmodules = false;
-      sha256 = "sha256-vvjjZB8wcnLczngkbqAUA+omv9AD23kavUItU9bdtuU=";
+      sha256 = "sha256-SSvhrQgn2B+mVTQ+kP7e8+nHchHxa0/AHuoLiAaHuU0=";
     };
-    date = "2025-02-17";
+    date = "2025-03-08";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "48909543bdc7cfb605034398f2757e8d01004aca";
+    version = "9a657e1dabc196e60dcf48435d48fb51aef3c60d";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "48909543bdc7cfb605034398f2757e8d01004aca";
+      rev = "9a657e1dabc196e60dcf48435d48fb51aef3c60d";
       fetchSubmodules = false;
-      sha256 = "sha256-8PrQo7zrkjqS41xdbcijuiXUGpK4o+lhqgiIvo+Tb1M=";
+      sha256 = "sha256-r/ZWwKc/RReYFoakq3RmBDKKNKsIdCP/R3vIK7HtcF4=";
     };
-    date = "2025-02-17";
+    date = "2025-03-02";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -87,13 +87,13 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "v2.39.3";
+    version = "v2.39.5";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "v2.39.3";
+      rev = "v2.39.5";
       fetchSubmodules = false;
-      sha256 = "sha256-w4wrXgrsUNO3dUfzgx1Xua2heyrfxLFXB1hGwOcNAEs=";
+      sha256 = "sha256-vqif3oLDm9SUrkY+qEYHUEmHN+psoK6GNUB+kA6sQ4Q=";
     };
   };
   source-zsh-jovial-theme = {
