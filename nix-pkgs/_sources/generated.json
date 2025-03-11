@@ -22,7 +22,7 @@
     },
     "source-emacs-master": {
         "cargoLocks": null,
-        "date": "2025-03-08",
+        "date": "2025-03-11",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -34,16 +34,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "02f9b525fc2188a57ff36ec38a60fa0032e2e547",
-            "sha256": "sha256-SSvhrQgn2B+mVTQ+kP7e8+nHchHxa0/AHuoLiAaHuU0=",
+            "rev": "57a213c91cdf4b1739b1068c5dc8ae85f1d5302c",
+            "sha256": "sha256-tyB3Y+r0kWICIVZg3CTNFYp9cIEflq65MkmD5dj4JIw=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "02f9b525fc2188a57ff36ec38a60fa0032e2e547"
+        "version": "57a213c91cdf4b1739b1068c5dc8ae85f1d5302c"
     },
     "source-emacs-master-igc": {
         "cargoLocks": null,
-        "date": "2025-03-02",
+        "date": "2025-03-08",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -55,12 +55,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "9a657e1dabc196e60dcf48435d48fb51aef3c60d",
-            "sha256": "sha256-r/ZWwKc/RReYFoakq3RmBDKKNKsIdCP/R3vIK7HtcF4=",
+            "rev": "dfe1a69abd4ec285f41ec6017c817584cf8ba347",
+            "sha256": "sha256-cr/d38q40d/17fXXJf+nFG0r3kwraNgh18fTco13ouw=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "9a657e1dabc196e60dcf48435d48fb51aef3c60d"
+        "version": "dfe1a69abd4ec285f41ec6017c817584cf8ba347"
     },
     "source-librime-charcode": {
         "cargoLocks": null,
