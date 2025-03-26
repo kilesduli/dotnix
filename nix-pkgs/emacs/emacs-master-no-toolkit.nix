@@ -19,5 +19,6 @@ in
     configureFlags = old.configureFlags ++ [
       "--without-xim"
     ];
+    patches = [];
   }
 )
