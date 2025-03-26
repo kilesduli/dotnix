@@ -8,7 +8,7 @@ font-feature = ss02
 mouse-scroll-multiplier = 5.0
 shell-integration-features = no-cursor, sudo
 cursor-style = block
-window-theme = light
+window-theme = system
 
 palette = 0=#000000
 palette = 1=#f9555f
