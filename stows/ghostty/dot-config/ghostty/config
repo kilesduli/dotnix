@@ -2,7 +2,7 @@ command = zsh
 
 # This is not work when fontconfig strong prepend a font
 # font-family = JetBrains Mono
-font-size = 11
+font-size = 12
 font-feature = ss02
 
 mouse-scroll-multiplier = 5.0
