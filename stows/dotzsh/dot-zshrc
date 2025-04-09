@@ -62,3 +62,4 @@ alias -- user-start='systemctl --user start'
 alias -- user-status='systemctl --user status'
 alias -- user-stop='systemctl --user stop'
 alias -- sbcl="sbcl --noinform"
+alias -- restart-gpg="sudo systemctl restart pcscd"
