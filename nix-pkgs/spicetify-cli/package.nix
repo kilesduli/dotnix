@@ -8,5 +8,5 @@ in
 spicetify-cli.overrideAttrs (old: {
   version = removePrefixv source-spicetify-cli.version + "-unstable";
   inherit (source-spicetify-cli) src;
-  vendorHash = "sha256-3U/qV81UXS/Xh3K6OnMUyRKeMSBQUHLP64EOQl6TfMY=";
+  vendorHash = "sha256-sC8HmszcH5fYnuoPW6aElB8UXPwk3Lpp2odsBaiP4mI=";
 })
