@@ -2,20 +2,20 @@
 , lib
 , stdenv
 , ccacheStdenv
+, source-emacs-master-igc
 , libgccjit
-, source-emacs-master
 , ...
 }:
 let
-  source-emacs = source-emacs-master;
+  source-emacs = source-emacs-master-igc;
 in
 (emacs30.override {
   stdenv = ccacheStdenv;
-  toolkit = "no";
+  toolkit = "lucid";
   withCairo = false;
 }).overrideAttrs (
   old: rec {
-    pname = "emacs-master-no-toolkit";
+    pname = "emacs-master-lucid";
     name = "${pname}-${builtins.concatStringsSep "" (lib.splitString "-" source-emacs.date)}";
     inherit (source-emacs) src;
     configureFlags = old.configureFlags ++ [
