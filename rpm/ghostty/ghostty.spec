@@ -4,7 +4,6 @@
 %global ghosttyversion 1.1.4
 
 %global _zig_system_integration %{nil}
-%global _zig_advanced_options %{nil}
 
 # We must need all options same in two phares
 # tips: zig doesn't recongize ^, so we replace to -
@@ -18,7 +17,7 @@
 
 Name:           ghostty
 Version:        %{ghosttyversion}^%{gitdate}git%{shortcommit}
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Ghostty Terminal
 
 License:        MIT
