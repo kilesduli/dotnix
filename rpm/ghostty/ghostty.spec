@@ -3,7 +3,15 @@
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global ghosttyversion 1.1.4
 
+%bcond_with ReleaseFast
+
+%if %{with ReleaseFast}
+%global debug_package %{nil}
+%endif
+
+%global _zig_release_mode %{?with_ReleaseFast:fast}%{!?with_ReleaseFast:safe}
 %global _zig_system_integration %{nil}
+
 
 # We must need all options same in two phares
 # tips: zig doesn't recongize ^, so we replace to -
@@ -15,14 +23,15 @@
     -fsys=gtk4-layer-shell
 }
 
-Name:           ghostty
+%global package_name ghostty
+Name:           %{package_name}%{?with_ReleaseFast:-fast}
 Version:        %{ghosttyversion}^%{gitdate}git%{shortcommit}
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        Ghostty Terminal
 
 License:        MIT
 URL:            https://ghostty.org/
-Source0:        https://github.com/ghostty-org/ghostty/archive/%{commit}/%{name}-%{shortcommit}.tar.gz
+Source0:        https://github.com/ghostty-org/ghostty/archive/%{commit}/%{package_name}-%{shortcommit}.tar.gz
 
 BuildRequires:  blueprint-compiler
 BuildRequires:  gettext
@@ -34,13 +43,15 @@ BuildRequires:  pkg-config
 BuildRequires:  zig
 BuildRequires:  zig-rpm-macros
 
+Conflicts:      %{package_name}%{!?with_ReleaseFast:-fast}
+
 
 %description
 Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.
 
 
 %prep
-%autosetup -n %{name}-%{commit}
+%autosetup -n %{package_name}-%{commit}
 
 
 %build
