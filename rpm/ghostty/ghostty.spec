@@ -3,9 +3,6 @@
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global ghosttyversion 1.1.4
 
-%bcond_with ReleaseFast
-
-%global _zig_release_mode %{?with_ReleaseFast:fast}%{!?with_ReleaseFast:safe}
 %global _zig_system_integration %{nil}
 %global _zig_advanced_options %{nil}
 
@@ -21,7 +18,7 @@
 
 Name:           ghostty
 Version:        %{ghosttyversion}^%{gitdate}git%{shortcommit}
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Ghostty Terminal
 
 License:        MIT
