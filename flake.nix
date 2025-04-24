@@ -33,12 +33,6 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
-
-    ghostty = {
-      url = "github:ghostty-org/ghostty";
-      inputs.nixpkgs-stable.follows = "nixpkgs";
-      inputs.nixpkgs-unstable.follows = "nixpkgs";
-    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
@@ -58,30 +52,10 @@
           directory = ./nix-pkgs;
         };
 
-      # This overlay do:
-      #   * merge inputs.xxxxx.packages."${system}" into pkgs
-      #   * if only have packages."${system}".default, rename to xxxxx(inputs name)
-      merge-inputs-packages = inputs: final: prev:
-        with prev.lib;
-        let
-          inputs-packages = name: value:
-            let
-              isOnlyDefault = packages: (length (attrNames packages) == 1) && hasAttr "default" packages;
-              packages = value.packages."${system}";
-            in
-            if isOnlyDefault packages
-            then { "${name}" = packages.default; }
-            else removeAttrs packages [ "default" ];
-        in
-        mergeAttrsList (mapAttrsToList inputs-packages inputs);
-
       overlays = [
         inputs.emacs-overlay.overlays.package
         inputs.nixgl.overlay
         inputs.nvfetcher.overlays.default
-        (merge-inputs-packages {
-          inherit (inputs) ghostty;
-        })
         nix-pkgs
       ];
 

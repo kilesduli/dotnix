@@ -86,9 +86,6 @@
         fcitx5-gtk
         libsForQt5.fcitx5-qt
         kdePackages.fcitx5-qt
-
-        # zig
-        ghostty
       ];
 
     file = { };
