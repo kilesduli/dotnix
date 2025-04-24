@@ -1,0 +1,43 @@
+From 19e7f44345949dc176b06e61d33384fed009fef8 Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Thu, 24 Apr 2025 16:30:05 +0800
+Subject: [PATCH] Remove debug warnning in RelaseSafe build
+
+---
+ src/apprt/gtk/Window.zig | 20 --------------------
+ 1 file changed, 20 deletions(-)
+
+diff --git a/src/apprt/gtk/Window.zig b/src/apprt/gtk/Window.zig
+index 20ac3d95..a77c02b1 100644
+--- a/src/apprt/gtk/Window.zig
++++ b/src/apprt/gtk/Window.zig
+@@ -305,26 +305,6 @@ pub fn init(self: *Window, app: *App) !void {
+         box.append(self.headerbar.asWidget());
+     }
+ 
+-    // In debug we show a warning and apply the 'devel' class to the window.
+-    // This is a really common issue where people build from source in debug and performance is really bad.
+-    if (comptime std.debug.runtime_safety) {
+-        const warning_box = gtk.Box.new(.vertical, 0);
+-        const warning_text = i18n._("⚠️ You're running a debug build of Ghostty! Performance will be degraded.");
+-        if (adw_version.supportsBanner()) {
+-            const banner = adw.Banner.new(warning_text);
+-            banner.setRevealed(1);
+-            warning_box.append(banner.as(gtk.Widget));
+-        } else {
+-            const warning = gtk.Label.new(warning_text);
+-            warning.as(gtk.Widget).setMarginTop(10);
+-            warning.as(gtk.Widget).setMarginBottom(10);
+-            warning_box.append(warning.as(gtk.Widget));
+-        }
+-        gtk_widget.addCssClass("devel");
+-        warning_box.as(gtk.Widget).addCssClass("background");
+-        box.append(warning_box.as(gtk.Widget));
+-    }
+-
+     // Setup our toast overlay if we have one
+     self.toast_overlay = adw.ToastOverlay.new();
+     self.toast_overlay.setChild(self.notebook.asWidget());
+-- 
+2.49.0
+

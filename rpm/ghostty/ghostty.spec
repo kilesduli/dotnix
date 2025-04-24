@@ -26,12 +26,13 @@
 %global package_name ghostty
 Name:           %{package_name}%{?with_ReleaseFast:-fast}
 Version:        %{ghosttyversion}^%{gitdate}git%{shortcommit}
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Ghostty Terminal
 
 License:        MIT
 URL:            https://ghostty.org/
 Source0:        https://github.com/ghostty-org/ghostty/archive/%{commit}/%{package_name}-%{shortcommit}.tar.gz
+Patch:          0001-Remove-debug-warnning-in-RelaseSafe-build.patch
 
 BuildRequires:  blueprint-compiler
 BuildRequires:  gettext
@@ -51,7 +52,7 @@ Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses 
 
 
 %prep
-%autosetup -n %{package_name}-%{commit}
+%autosetup -n %{package_name}-%{commit} -p1
 
 
 %build
