@@ -1,5 +1,5 @@
-%global gitdate 20250424
-%global commit  4e91d11a60bf3f52a15936cef65eae7135906b28
+%global gitdate 20250503
+%global commit  b6f338065eb45935627a51a7d9102019aaeae1c0
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global ghosttyversion 1.1.4
 
