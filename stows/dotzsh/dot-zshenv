@@ -28,6 +28,7 @@ export DOTNET_ROOT="$HOME/.dotnet"
 
 # PATH
 prepend_paths=(
+  "$VOLTA_HOME/bin"
   "$HOME/.cargo/bin"
   "$DOTNET_ROOT"
   "$DOTNET_ROOT/tools"
@@ -37,7 +38,6 @@ append_paths=(
   "/opt/clojure/bin"
   "$GOPATH/bin"
   "$BUN_INSTALL/bin"
-  "$VOLTA_HOME/bin"
   $HOME/.emacs.d/bin
 )
 
