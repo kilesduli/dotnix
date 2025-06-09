@@ -15,27 +15,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "492adf20b91520e96fb198e6e936e3145359c43b";
+    version = "1009e3d1fd6a40cf7a07a0f75a24f704737e4c6b";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "492adf20b91520e96fb198e6e936e3145359c43b";
+      rev = "1009e3d1fd6a40cf7a07a0f75a24f704737e4c6b";
       fetchSubmodules = false;
-      sha256 = "sha256-9Gpb/RDpw2g6BZRZG1XtHI4Xpxf4DTcnqGcWc6fMahs=";
+      sha256 = "sha256-SCzjUlcF7TKy/cwoayklN1lX3F7zEWLTuONljP+Lf/M=";
     };
-    date = "2025-05-24";
+    date = "2025-06-09";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "200b02f54dac5db34496f35d0884f03afa23a5a6";
+    version = "f90cee6f761b0c2bffcfa64556284884c0f7348f";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "200b02f54dac5db34496f35d0884f03afa23a5a6";
+      rev = "f90cee6f761b0c2bffcfa64556284884c0f7348f";
       fetchSubmodules = false;
-      sha256 = "sha256-xm5+SI2VfwVoMDR05m66+DCTuqLEzKe8Yul8Ytg3pw8=";
+      sha256 = "sha256-whRv/sLJ+wY07aCdN4T8C6tIjL0yHuLjvVwxUVAsjLY=";
     };
-    date = "2025-05-23";
+    date = "2025-06-07";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -87,25 +87,25 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "v2.40.9";
+    version = "v2.40.10";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "v2.40.9";
+      rev = "v2.40.10";
       fetchSubmodules = false;
-      sha256 = "sha256-x3M6AbFiVCk1LM3k+D+NAnOclu90LAuBgYI/cBLpH3A=";
+      sha256 = "sha256-S9vC7gAbwW8YSpXyDryalXHW3aWffGlelyc/oaE5vXg=";
     };
   };
   source-zsh-jovial-theme = {
     pname = "source-zsh-jovial-theme";
-    version = "ca75df4213e2a7865fc14763cb5c16ba17f22b7d";
+    version = "d3fc0dc57e49c2c862cd1f4c19308bf0eb2091c4";
     src = fetchFromGitHub {
       owner = "zthxxx";
       repo = "jovial";
-      rev = "ca75df4213e2a7865fc14763cb5c16ba17f22b7d";
+      rev = "d3fc0dc57e49c2c862cd1f4c19308bf0eb2091c4";
       fetchSubmodules = false;
-      sha256 = "sha256-nzZzPQVIIx8NM1r2GW/61CNL6UxxACqiPFy95NNzuYw=";
+      sha256 = "sha256-iumAzG1osmSK6R71I4sd+M1C086e+HdYidqlW8qaObo=";
     };
-    date = "2025-04-27";
+    date = "2025-06-09";
   };
 }

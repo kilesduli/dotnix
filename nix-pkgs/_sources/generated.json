@@ -22,7 +22,7 @@
     },
     "source-emacs-master": {
         "cargoLocks": null,
-        "date": "2025-05-24",
+        "date": "2025-06-09",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -34,16 +34,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "492adf20b91520e96fb198e6e936e3145359c43b",
-            "sha256": "sha256-9Gpb/RDpw2g6BZRZG1XtHI4Xpxf4DTcnqGcWc6fMahs=",
+            "rev": "1009e3d1fd6a40cf7a07a0f75a24f704737e4c6b",
+            "sha256": "sha256-SCzjUlcF7TKy/cwoayklN1lX3F7zEWLTuONljP+Lf/M=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "492adf20b91520e96fb198e6e936e3145359c43b"
+        "version": "1009e3d1fd6a40cf7a07a0f75a24f704737e4c6b"
     },
     "source-emacs-master-igc": {
         "cargoLocks": null,
-        "date": "2025-05-23",
+        "date": "2025-06-07",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -55,12 +55,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "200b02f54dac5db34496f35d0884f03afa23a5a6",
-            "sha256": "sha256-xm5+SI2VfwVoMDR05m66+DCTuqLEzKe8Yul8Ytg3pw8=",
+            "rev": "f90cee6f761b0c2bffcfa64556284884c0f7348f",
+            "sha256": "sha256-whRv/sLJ+wY07aCdN4T8C6tIjL0yHuLjvVwxUVAsjLY=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "200b02f54dac5db34496f35d0884f03afa23a5a6"
+        "version": "f90cee6f761b0c2bffcfa64556284884c0f7348f"
     },
     "source-librime-charcode": {
         "cargoLocks": null,
@@ -160,16 +160,16 @@
             "name": null,
             "owner": "spicetify",
             "repo": "cli",
-            "rev": "v2.40.9",
-            "sha256": "sha256-x3M6AbFiVCk1LM3k+D+NAnOclu90LAuBgYI/cBLpH3A=",
+            "rev": "v2.40.10",
+            "sha256": "sha256-S9vC7gAbwW8YSpXyDryalXHW3aWffGlelyc/oaE5vXg=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "v2.40.9"
+        "version": "v2.40.10"
     },
     "source-zsh-jovial-theme": {
         "cargoLocks": null,
-        "date": "2025-04-27",
+        "date": "2025-06-09",
         "extract": null,
         "name": "source-zsh-jovial-theme",
         "passthru": null,
@@ -181,11 +181,11 @@
             "name": null,
             "owner": "zthxxx",
             "repo": "jovial",
-            "rev": "ca75df4213e2a7865fc14763cb5c16ba17f22b7d",
-            "sha256": "sha256-nzZzPQVIIx8NM1r2GW/61CNL6UxxACqiPFy95NNzuYw=",
+            "rev": "d3fc0dc57e49c2c862cd1f4c19308bf0eb2091c4",
+            "sha256": "sha256-iumAzG1osmSK6R71I4sd+M1C086e+HdYidqlW8qaObo=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "ca75df4213e2a7865fc14763cb5c16ba17f22b7d"
+        "version": "d3fc0dc57e49c2c862cd1f4c19308bf0eb2091c4"
     }
 }
