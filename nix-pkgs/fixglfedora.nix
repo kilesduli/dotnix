@@ -32,7 +32,7 @@ let
     else
       { name = (elemAt result 0); path = libpath; majorVersion = (elemAt result 2); fullVersion = (elemAt result 1); };
 
-  mkLibNoVersioningSymLInk = libpaths:
+  mkLibNoVersioningSymLink = libpaths:
     let
       removeVersion = libattr: removeAttrs libattr [ "majorVersion" "fullVersion" ];
       filterNotNull = ls: (filter (e: e != null) ls);
@@ -55,7 +55,7 @@ let
       libpaths = builtins.filter (s: s != "") (splitString "\n" (builtins.readFile libraryPathFile));
     in
     if libpaths != [ ]
-    then (map (libpath: { name = baseNameOf libpath; path = libpath; }) libpaths) ++ mkLibNoVersioningSymLInk libpaths
+    then (map (libpath: { name = baseNameOf libpath; path = libpath; }) libpaths) ++ mkLibNoVersioningSymLink libpaths
     else throw "found 0 libpath, build failure.";
 
 
