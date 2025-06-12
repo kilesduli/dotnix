@@ -33,6 +33,10 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+
+    fixGL = {
+      url = "github:kilesduli/fixGL";
+    };
   };
 
   outputs = { self, nixpkgs, home-manager, ... }@inputs:
@@ -56,6 +60,7 @@
         inputs.emacs-overlay.overlays.package
         inputs.nixgl.overlay
         inputs.nvfetcher.overlays.default
+        inputs.fixGL.overlay
         nix-pkgs
       ];
 

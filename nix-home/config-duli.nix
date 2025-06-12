@@ -45,7 +45,7 @@
 
         # openGL related fix
         nixgl.auto.nixGLDefault
-        fixglfedora
+        fixGLFedora
 
         # emacs related
         librime-with-plugins
