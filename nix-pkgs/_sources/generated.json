@@ -22,7 +22,7 @@
     },
     "source-emacs-master": {
         "cargoLocks": null,
-        "date": "2025-07-06",
+        "date": "2025-07-25",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -34,16 +34,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "0550d036b71a129e79c17856142735aac0081205",
-            "sha256": "sha256-g94a7HZqrezHhwx9gbvvJv461Lma0MaWY2q49rGVJQE=",
+            "rev": "c5f649441e2e055701c7bee811eaf266c4f0e7ce",
+            "sha256": "sha256-HKUApEYureF+CKSdAD6d6AtPU26Ea1DIQQme2iB+x84=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "0550d036b71a129e79c17856142735aac0081205"
+        "version": "c5f649441e2e055701c7bee811eaf266c4f0e7ce"
     },
     "source-emacs-master-igc": {
         "cargoLocks": null,
-        "date": "2025-06-25",
+        "date": "2025-07-16",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -55,12 +55,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "1c19182e28e90b619a4c3d5553e3b5ae03eccd12",
-            "sha256": "sha256-nZIcNLpe6qqyxZMsm8e5jup2HHHaWbgIk36MstxoTjc=",
+            "rev": "382123e69e2c0cae39e44f9b72ca3674eaec2ad1",
+            "sha256": "sha256-f1uUHzOgbjnKLXa98OTi2n3VFvinUuuCa3LLFucUjbk=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "1c19182e28e90b619a4c3d5553e3b5ae03eccd12"
+        "version": "382123e69e2c0cae39e44f9b72ca3674eaec2ad1"
     },
     "source-librime-charcode": {
         "cargoLocks": null,
@@ -85,7 +85,7 @@
     },
     "source-librime-lua": {
         "cargoLocks": null,
-        "date": "2024-12-21",
+        "date": "2025-07-07",
         "extract": null,
         "name": "source-librime-lua",
         "passthru": null,
@@ -97,12 +97,12 @@
             "name": null,
             "owner": "hchunhui",
             "repo": "librime-lua",
-            "rev": "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6",
-            "sha256": "sha256-zx0F41szn5qlc2MNjt1vizLIsIFQ67fp5cb8U8UUgtY=",
+            "rev": "68f9c364a2d25a04c7d4794981d7c796b05ab627",
+            "sha256": "sha256-m7/qXdIlMMHscDDcFmusNuOR0cuzPpDQdprqRci8qZw=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6"
+        "version": "68f9c364a2d25a04c7d4794981d7c796b05ab627"
     },
     "source-librime-octagram": {
         "cargoLocks": null,

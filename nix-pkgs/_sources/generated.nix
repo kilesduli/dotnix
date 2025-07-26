@@ -15,27 +15,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "0550d036b71a129e79c17856142735aac0081205";
+    version = "c5f649441e2e055701c7bee811eaf266c4f0e7ce";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "0550d036b71a129e79c17856142735aac0081205";
+      rev = "c5f649441e2e055701c7bee811eaf266c4f0e7ce";
       fetchSubmodules = false;
-      sha256 = "sha256-g94a7HZqrezHhwx9gbvvJv461Lma0MaWY2q49rGVJQE=";
+      sha256 = "sha256-HKUApEYureF+CKSdAD6d6AtPU26Ea1DIQQme2iB+x84=";
     };
-    date = "2025-07-06";
+    date = "2025-07-25";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "1c19182e28e90b619a4c3d5553e3b5ae03eccd12";
+    version = "382123e69e2c0cae39e44f9b72ca3674eaec2ad1";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "1c19182e28e90b619a4c3d5553e3b5ae03eccd12";
+      rev = "382123e69e2c0cae39e44f9b72ca3674eaec2ad1";
       fetchSubmodules = false;
-      sha256 = "sha256-nZIcNLpe6qqyxZMsm8e5jup2HHHaWbgIk36MstxoTjc=";
+      sha256 = "sha256-f1uUHzOgbjnKLXa98OTi2n3VFvinUuuCa3LLFucUjbk=";
     };
-    date = "2025-06-25";
+    date = "2025-07-16";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -51,15 +51,15 @@
   };
   source-librime-lua = {
     pname = "source-librime-lua";
-    version = "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6";
+    version = "68f9c364a2d25a04c7d4794981d7c796b05ab627";
     src = fetchFromGitHub {
       owner = "hchunhui";
       repo = "librime-lua";
-      rev = "e3912a4b3ac2c202d89face3fef3d41eb1d7fcd6";
+      rev = "68f9c364a2d25a04c7d4794981d7c796b05ab627";
       fetchSubmodules = false;
-      sha256 = "sha256-zx0F41szn5qlc2MNjt1vizLIsIFQ67fp5cb8U8UUgtY=";
+      sha256 = "sha256-m7/qXdIlMMHscDDcFmusNuOR0cuzPpDQdprqRci8qZw=";
     };
-    date = "2024-12-21";
+    date = "2025-07-07";
   };
   source-librime-octagram = {
     pname = "source-librime-octagram";
