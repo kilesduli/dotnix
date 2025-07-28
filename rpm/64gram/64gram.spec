@@ -11,9 +11,12 @@
 # Reducing debuginfo verbosity...
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 
+%global tde2e_commit 6d74326c5ce53aeb52496f157f0080d9b8515970
+%global tde2e_shortcommit %(c=%{tde2e_commit}; echo ${c:0:7})
+
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.58
+Version:        1.1.76
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
@@ -28,9 +31,11 @@ License:        GPL-3.0-or-later AND BSD-3-Clause AND BSD-2-Clause AND Apache-2.
 URL:            https://github.com/TDesktop-x64/tdesktop
 Summary:        Unofficial Telegram Desktop providing Windows 64bit build and extra features
 Source0:        %{name}-%{version}.tar.gz
-Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0001-Disable-sponsored-messages.patch
-Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0002-Disable-saving-restrictions.patch
-Patch:          https://raw.githubusercontent.com/Layerex/telegram-desktop-patches/refs/heads/master/0003-Disable-invite-peeking-restrictions.patch
+Source1:        https://github.com/tdlib/td/archive/%{tde2e_commit}/td-%{tde2e_shortcommit}.tar.gz
+Patch:          0001-feat-disable-sponsored-messages.patch
+Patch:          0002-feat-disable-saving-restrictions.patch
+Patch:          0003-feat-disable-invite-peeking-restrictions.patch
+Patch:          findprotobuf_fix.patch
 
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
@@ -144,8 +149,11 @@ business messaging needs.
 # Unpacking Telegram Desktop source archive...
 %autosetup -p1
 
+tar -xaf %{SOURCE1}
+mv td-%{tde2e_commit} build-tde2e
+
 # Unbundling libraries... except minizip
-rm -rf Telegram/ThirdParty/{QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,jemalloc,kimageformats,lz4,nimf,range-v3,xxHash}
+rm -rf Telegram/ThirdParty/{QR,dispatch,expected,hunspell,jemalloc,lz4,range-v3,xxHash}
 
 # Fix minizip requrement
 # sed -i 's|2.0.0|4.0.0|' cmake/external/minizip/CMakeLists.txt
@@ -155,6 +163,15 @@ sed -i "/#include <openssl\/engine.h>/d" Telegram/SourceFiles/core/utils.cpp
 %endif
 
 %build
+%__cmake -S build-tde2e -B build-tde2e/build \
+    -DCMAKE_INSTALL_PREFIX="$PWD/build-tde2e/install" \
+    -Wno-dev \
+    -DTD_E2E_ONLY=ON
+
+%__cmake --build build-tde2e/build
+%__cmake --install build-tde2e/build
+
+
 # Building Telegram Desktop using cmake...
 %cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
@@ -167,7 +184,8 @@ sed -i "/#include <openssl\/engine.h>/d" Telegram/SourceFiles/core/utils.cpp
     -DDESKTOP_APP_USE_PACKAGED_FONTS:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_WAYLAND_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_X11_INTEGRATION:BOOL=OFF \
-    -DDESKTOP_APP_DISABLE_CRASH_REPORTS:BOOL=ON
+    -DDESKTOP_APP_DISABLE_CRASH_REPORTS:BOOL=ON \
+    -Dtde2e_DIR="$PWD/build-tde2e/install/lib/cmake/tde2e"
 %cmake_build
 
 %install
@@ -180,7 +198,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/*.desktop
 %files
 %doc README.md changelog.txt
 %license LICENSE LEGAL
-%{_bindir}/telegram-desktop
+%{_bindir}/Telegram
 %{_datadir}/applications/*.desktop
 %{_datadir}/icons/hicolor/*/apps/*.png
 %{_datadir}/icons/hicolor/*/apps/*.svg
