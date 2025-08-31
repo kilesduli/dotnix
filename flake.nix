@@ -36,6 +36,8 @@
 
     fixGL = {
       url = "github:kilesduli/fixGL";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
   };
 
