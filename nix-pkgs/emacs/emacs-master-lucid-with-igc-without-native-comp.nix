@@ -13,6 +13,7 @@ in
   toolkit = "lucid";
   withCairo = false;
   withNativeCompilation = false;
+  srcRepo = true;
 }).overrideAttrs (
   old: rec {
     pname = "emacs-master-lucid-with-igc-without-native-comp";

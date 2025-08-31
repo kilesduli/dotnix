@@ -13,6 +13,7 @@ in
   stdenv = ccacheStdenv;
   toolkit = "no";
   withCairo = false;
+  srcRepo = true;
 }).overrideAttrs (
   old: rec {
     pname = "emacs-master-no-toolkit";

@@ -13,6 +13,7 @@ in
   stdenv = ccacheStdenv;
   toolkit = "lucid";
   withCairo = false;
+  srcRepo = true;
 }).overrideAttrs (
   old: rec {
     pname = "emacs-master-lucid";
