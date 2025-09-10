@@ -3,7 +3,7 @@
 # Source: https://src.fedoraproject.org/rpms/librime
 Name:           librime
 Epoch:          1
-Version:        1.13.1
+Version:        1.14.0
 Release:        1%{?dist}
 Summary:        Rime Input Method Engine Library
 
