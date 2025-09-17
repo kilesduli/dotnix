@@ -11,12 +11,12 @@
 # Reducing debuginfo verbosity...
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 
-%global tde2e_commit 6d74326c5ce53aeb52496f157f0080d9b8515970
+%global tde2e_commit bdec6af5d70dd51dd8ee9c0565a8a81deb9d169b
 %global tde2e_shortcommit %(c=%{tde2e_commit}; echo ${c:0:7})
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.76
+Version:        1.1.79
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
@@ -100,6 +100,7 @@ BuildRequires:  desktop-file-utils
 BuildRequires:  ffmpeg-devel
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
+BuildRequires:  gperf
 BuildRequires:  libappstream-glib
 BuildRequires:  libatomic
 BuildRequires:  libdispatch-devel
