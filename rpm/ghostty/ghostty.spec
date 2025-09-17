@@ -1,9 +1,10 @@
-%global gitdate 20250615
-%global commit  9e45da17d055d122393285a67b2e590e4d049641
+%global gitdate 20250915
+%global commit  3e38e284ca593b601fb70e877c3155fedf42e2e5
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%global ghosttyversion 1.1.4
+%global ghosttyversion 1.2.0
 
 %bcond_with ReleaseFast
+%global with_ReleaseFast 1
 
 %if %{with ReleaseFast}
 %global debug_package %{nil}
@@ -26,7 +27,7 @@
 %global package_name ghostty
 Name:           %{package_name}%{?with_ReleaseFast:-fast}
 Version:        %{ghosttyversion}^%{gitdate}git%{shortcommit}
-Release:        5%{?dist}
+Release:        1%{?dist}
 Summary:        Ghostty Terminal
 
 License:        MIT
@@ -43,6 +44,7 @@ BuildRequires:  pandoc
 BuildRequires:  pkg-config
 BuildRequires:  zig
 BuildRequires:  zig-rpm-macros
+BuildRequires:  systemd-rpm-macros
 
 Conflicts:      %{package_name}%{!?with_ReleaseFast:-fast}
 
@@ -63,15 +65,18 @@ Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses 
 %zig_install %{ghostty_build_options}
 # ncurse-term provides it.
 rm -rf %{buildroot}/%{_datadir}/terminfo/g/ghostty
-
+mkdir -p %{buildroot}%{_userunitdir}
+mv %{buildroot}%{_datadir}/systemd/user/app-com.mitchellh.ghostty%{!?with_ReleaseFast:-debug}.service %{buildroot}/usr/lib/systemd/user/.
+rm -rf %{buildroot}%{_datadir}/systemd
 
 %files
 %license LICENSE
 %doc %{_datadir}/ghostty/doc/*
 %{_bindir}/ghostty
-%{_datadir}/applications/com.mitchellh.ghostty.desktop
+%{_datadir}/applications/com.mitchellh.ghostty%{!?with_ReleaseFast:-debug}.desktop
 %{_datadir}/bash-completion/completions/ghostty.bash
 %{_datadir}/bat/syntaxes/ghostty.sublime-syntax
+%{_datadir}/dbus-1/services/com.mitchellh.ghostty%{!?with_ReleaseFast:-debug}.service
 %{_datadir}/fish/vendor_completions.d/ghostty.fish
 %{_datadir}/ghostty/shell-integration/bash/*
 %{_datadir}/ghostty/shell-integration/elvish/lib/ghostty-integration.elv
@@ -84,9 +89,10 @@ rm -rf %{buildroot}/%{_datadir}/terminfo/g/ghostty
 %{_datadir}/locale/*/LC_MESSAGES/com.mitchellh.ghostty.mo
 %{_datadir}/man/man1/ghostty.1.gz
 %{_datadir}/man/man5/ghostty.5.gz
-%{_datadir}/metainfo/com.mitchellh.ghostty.metainfo.xml
+%{_datadir}/metainfo/com.mitchellh.ghostty%{!?with_ReleaseFast:-debug}.metainfo.xml
 %{_datadir}/nautilus-python/extensions/ghostty.py
 %{_datadir}/nvim/site/*
 %{_datadir}/terminfo/x/xterm-ghostty
 %{_datadir}/vim/vimfiles/*
 %{_datadir}/zsh/site-functions/_ghostty
+%{_userunitdir}/app-com.mitchellh.ghostty%{!?with_ReleaseFast:-debug}.service

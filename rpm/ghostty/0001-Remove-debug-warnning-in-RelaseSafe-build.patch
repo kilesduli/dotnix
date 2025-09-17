@@ -1,37 +1,22 @@
-From f991824e77c13170b5c794154ac6eb60a64637cf Mon Sep 17 00:00:00 2001
+From 59722484678af1f2e92fca9b73fa98fd4f80f741 Mon Sep 17 00:00:00 2001
 From: duli <duli4868@gmail.com>
-Date: Thu, 24 Apr 2025 16:30:05 +0800
+Date: Wed, 17 Sep 2025 20:46:16 +0800
 Subject: [PATCH] Remove debug warnning in RelaseSafe build
 
 ---
- src/apprt/gtk/Window.zig | 20 --------------------
- 1 file changed, 20 deletions(-)
+ src/apprt/gtk/class/window.zig | 5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/src/apprt/gtk/Window.zig b/src/apprt/gtk/Window.zig
-index f911ccbc..1393e1fc 100644
---- a/src/apprt/gtk/Window.zig
-+++ b/src/apprt/gtk/Window.zig
-@@ -317,20 +316,0 @@ pub fn init(self: *Window, app: *App) !void {
--    // In debug we show a warning and apply the 'devel' class to the window.
--    // This is a really common issue where people build from source in debug and performance is really bad.
--    if (comptime std.debug.runtime_safety) {
--        const warning_box = gtk.Box.new(.vertical, 0);
--        const warning_text = i18n._("⚠️ You're running a debug build of Ghostty! Performance will be degraded.");
--        if (adw_version.supportsBanner()) {
--            const banner = adw.Banner.new(warning_text);
--            banner.setRevealed(1);
--            warning_box.append(banner.as(gtk.Widget));
--        } else {
--            const warning = gtk.Label.new(warning_text);
--            warning.as(gtk.Widget).setMarginTop(10);
--            warning.as(gtk.Widget).setMarginBottom(10);
--            warning_box.append(warning.as(gtk.Widget));
+diff --git a/src/apprt/gtk/class/window.zig b/src/apprt/gtk/class/window.zig
+index df6ea647f..953d620a4 100644
+--- a/src/apprt/gtk/class/window.zig
++++ b/src/apprt/gtk/class/window.zig
+@@ -287,5 +286,0 @@ pub const Window = extern struct {
+-        // Add our dev CSS class if we're in debug mode.
+-        if (comptime build_config.is_debug) {
+-            self.as(gtk.Widget).addCssClass("devel");
 -        }
--        gtk_widget.addCssClass("devel");
--        warning_box.as(gtk.Widget).addCssClass("background");
--        box.append(warning_box.as(gtk.Widget));
--    }
 -
 -- 
-2.49.0
+2.51.0
 
