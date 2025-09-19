@@ -3,6 +3,7 @@
 
 # rpm all build stuff
 /rpm/**/*.tar.gz
+/rpm/**/*.tar.xz
 /rpm/**/*.src.rpm
 /rpm/**/*.rpm
 /rpm/**/results*/
