@@ -1,6 +1,7 @@
 %global forgeurl https://github.com/WayfireWM/wayfire-plugins-extra
 
 Name:           wayfire-plugins-extra
+Epoch:          1
 Version:        0.10.0
 Release:        1%{?dist}
 %forgemeta
