@@ -2,6 +2,7 @@
 %global debug_package %{nil}
 
 Name:           vicinae
+Epoch:          1
 Version:        0.9.6
 Release:        1%{?dist}
 Summary:        A focused launcher for your desktop — native, fast, extensible
