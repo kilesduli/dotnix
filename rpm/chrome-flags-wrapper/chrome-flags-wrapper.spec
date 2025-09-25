@@ -12,7 +12,7 @@ Requires:       bash
 Requires:       grep
 
 %description
-%{Summary}
+%{summary}
 
 %install
 install -Dm755 %{S:0} %{buildroot}%{_libexecdir}/chrome-flags-wrapper.sh
