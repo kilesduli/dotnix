@@ -37,12 +37,6 @@ stow -t /home/duli --dotfiles script
 #+end_example
 ** chrome-flags
 #+begin_src bash
+sudo dnf install/reinstall chrome-flags-wrapper
 stow -t /home/duli --dotfiles chrome-flags
-# keep the origin link
-sudo alternatives --install /usr/bin/google-chrome-stable google-chrome-stable /opt/google/chrome/google-chrome 100
-sudo alternatives --install /usr/bin/google-chrome-stable google-chrome-stable /home/duli/.local/bin/chrome-wrap.sh 999
-
-
-sudo alternatives --install /usr/bin/google-chrome-unstable google-chrome-unstable /opt/google/chrome-unstable/google-chrome-unstable 100
-sudo alternatives --install /usr/bin/google-chrome-unstable google-chrome-unstable /home/duli/.local/bin/chrome-wrap.sh 999
 #+end_src
