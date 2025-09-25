@@ -1,6 +1,6 @@
 Name:           chrome-flags-wrapper
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Just a chrome flags wrapper
 BuildArch:      noarch
 
@@ -10,6 +10,7 @@ Source0:        chrome-flags-wrapper.sh
 
 Requires:       bash
 Requires:       grep
+Requires:       alternatives
 
 %description
 %{summary}
