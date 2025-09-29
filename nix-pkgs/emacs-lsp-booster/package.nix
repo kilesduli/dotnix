@@ -6,7 +6,6 @@ rustPlatform.buildRustPackage rec {
   pname = "emacs-lsp-booster";
   version = "0.2.1-unstable";
 
-  useFetchCargoVendor = true;
   cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
 
   # The tests contain what are essentially benchmarks—it seems prudent not to
