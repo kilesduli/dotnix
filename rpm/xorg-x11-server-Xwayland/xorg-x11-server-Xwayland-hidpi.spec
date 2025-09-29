@@ -87,8 +87,9 @@ BuildRequires: pkgconfig(xcb-icccm)
 BuildRequires: pkgconfig(xcb-keysyms)
 BuildRequires: pkgconfig(xcb-renderutil)
 
-Provides: xorg-x11-server-Xwayland%{?_isa} = %{epoch}:%{version}-%{release}
-Provides: xorg-x11-server-Xwayland
+Provides:      xorg-x11-server-Xwayland = %{epoch}:%{version}-%{release}
+Provides:      xorg-x11-server-Xwayland%{?_isa} = %{epoch}:%{version}-%{release}
+Conflicts:     xorg-x11-server-Xwayland%{?_isa}
 
 %description
 Xwayland is an X server for running X clients under Wayland.
@@ -97,8 +98,9 @@ Xwayland is an X server for running X clients under Wayland.
 Summary: Development package
 Requires: pkgconfig
 Requires: %{name}%{?_isa} = %{epoch}:%{version}-%{release}
+Provides: xorg-x11-server-Xwayland-devel = %{epoch}:%{version}-%{release}
 Provides: xorg-x11-server-Xwayland-devel%{?_isa} = %{epoch}:%{version}-%{release}
-Provides: xorg-x11-server-Xwayland-devel
+Conflicts:	xorg-x11-server-Xwayland-devel%{?_isa}
 
 %description devel
 The development package provides the developmental files which are
