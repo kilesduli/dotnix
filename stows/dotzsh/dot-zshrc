@@ -46,6 +46,13 @@ ex ()
   fi
 }
 
+in() {
+  (
+    cd "$1" || exit
+    shift
+    "$@"
+  )
+}
 
 # Aliases
 alias -- e='emacsclient --alternate-editor="" --create-frame --no-wait'
