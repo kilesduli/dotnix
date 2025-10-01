@@ -7,12 +7,14 @@ let
     ;
 
   inherit (lib.attrsets)
+    attrsToList
     filterAttrs
     nameValuePair
     foldlAttrs
     ;
 
   inherit (lib.strings)
+    hasPrefix
     hasSuffix
     removeSuffix
     ;
@@ -40,7 +42,7 @@ in
           ([ directoryEntryPred ] ++ packagepredlist);
 
       packageFromFile = path: basename: type:
-        if hasSuffix ".nix" basename
+        if hasSuffix ".nix" basename && !(hasPrefix "varient-" basename)
         then
           [
             (nameValuePair
@@ -49,6 +51,11 @@ in
           ]
         else
           [ ];
+
+      packageFromVarients = path: basename: type:
+        if hasSuffix ".nix" basename && (hasPrefix "varient-" basename)
+        then attrsToList (callPackage (path + "/${basename}") { })
+        else [ ];
 
       packagesFromDirectoryEntry = path: basename: type:
         let
@@ -68,7 +75,7 @@ in
         foldlAttrs
           (acc: basename: type:
             if type == "regular"
-            then acc ++ (packageFromFile path basename type)
+            then acc ++ (packageFromFile path basename type) ++ (packageFromVarients path basename type)
             else
               if type == "directory"
               then
