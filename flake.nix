@@ -51,10 +51,15 @@
       #   * call all packages definition in ./nix-pkgs use callPackageFromDirectory
       nix-pkgs = final: prev:
         let
-          sources = prev.callPackage ./nix-pkgs/_sources/generated.nix { };
+          # HACK: splice.nix is called as an overlay, where callPackage is
+          # final.newScope { }, thus encountering infinite recursion when
+          # evaluating prev in advance. So we need remove callPackage in
+          # pkgsforCall to avoid this.
+          noCallPackagePrev = (removeAttrs prev [ "callPackage" ]);
+          sources = prev.lib.callPackageWith noCallPackagePrev ./nix-pkgs/_sources/generated.nix { };
         in
         lib.callPackageFromDirectory {
-          callPackage = prev.lib.callPackageWith (prev // sources);
+          callPackage = prev.lib.callPackageWith (noCallPackagePrev // sources);
           directory = ./nix-pkgs;
         };
 
