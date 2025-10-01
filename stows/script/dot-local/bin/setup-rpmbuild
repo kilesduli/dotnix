@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -o nounset
+repo=$1
+
+mkdir -p $HOME/rpmbuild
+ln -s ~/rpm/$repo $HOME/rpmbuild/SOURCES
+ln -s ~/rpm/$repo $HOME/rpmbuild/SPECS
+rpmdev-setuptree
