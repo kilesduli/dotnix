@@ -16,7 +16,7 @@
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.79
+Version:        1.1.83
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
@@ -36,6 +36,8 @@ Patch:          0001-feat-disable-sponsored-messages.patch
 Patch:          0002-feat-disable-saving-restrictions.patch
 Patch:          0003-feat-disable-invite-peeking-restrictions.patch
 Patch:          findprotobuf_fix.patch
+# use mochaa tg_owt instead of rpmfusion, so we need this patch to fix build
+Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-libyuv-include.patch#/tgcalls-fix-libyuv-include.patch
 
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
@@ -54,6 +56,8 @@ BuildRequires:  cmake(Qt6OpenGLWidgets)
 BuildRequires:  cmake(Qt6Svg)
 BuildRequires:  cmake(Qt6WaylandClient)
 BuildRequires:  cmake(Qt6Widgets)
+BuildRequires:  cmake(KF6CoreAddons)
+BuildRequires:  cmake(KF6ImageFormats)
 BuildRequires:  cmake(fmt)
 BuildRequires:  cmake(range-v3)
 BuildRequires:  cmake(tg_owt)
@@ -73,6 +77,7 @@ BuildRequires:  pkgconfig(libavfilter)
 BuildRequires:  pkgconfig(libavformat)
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libcrypto)
+BuildRequires:  pkgconfig(libjpeg)
 BuildRequires:  pkgconfig(liblz4)
 BuildRequires:  pkgconfig(liblzma)
 BuildRequires:  pkgconfig(libpulse)
@@ -97,7 +102,8 @@ BuildRequires:  pkgconfig(xcb-screensaver)
 BuildRequires:  boost-devel
 BuildRequires:  cmake
 BuildRequires:  desktop-file-utils
-BuildRequires:  ffmpeg-devel
+# seems use ffmpeg-free to build will fine
+BuildRequires:  ffmpeg-free-devel
 BuildRequires:  gcc
 BuildRequires:  gcc-c++
 BuildRequires:  gperf
@@ -117,6 +123,8 @@ BuildRequires:  pkgconfig(openh264)
 Requires:       hicolor-icon-theme
 Requires:       qt6-qtimageformats%{?_isa}
 Requires:       webkitgtk6.0%{?_isa}
+
+Conflicts:      telegram-desktop%{?_isa}
 
 # Short alias for the main package...
 Provides:       telegram = %{?epoch:%{epoch}:}%{version}-%{release}
@@ -154,7 +162,9 @@ tar -xaf %{SOURCE1}
 mv td-%{tde2e_commit} build-tde2e
 
 # Unbundling libraries... except minizip
-rm -rf Telegram/ThirdParty/{QR,dispatch,expected,hunspell,jemalloc,lz4,range-v3,xxHash}
+# hime and nimf is another input method, we don't need it.
+rm -rf Telegram/ThirdParty/{GSL,QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,kimageformats,kcoreaddons,lz4,nimf,range-v3,xxHash}
+
 
 # Fix minizip requrement
 # sed -i 's|2.0.0|4.0.0|' cmake/external/minizip/CMakeLists.txt
@@ -162,6 +172,10 @@ rm -rf Telegram/ThirdParty/{QR,dispatch,expected,hunspell,jemalloc,lz4,range-v3,
 %if 0%{?fedora} >= 41
 sed -i "/#include <openssl\/engine.h>/d" Telegram/SourceFiles/core/utils.cpp
 %endif
+
+sed -i '/^TryExec=/ s/Telegram/\/usr\/bin\/Telegram/g; /^Exec=/ s/Telegram/\/usr\/bin\/Telegram/g' lib/xdg/io.github.tdesktop_x64.TDesktop.desktop
+sed -i 's/telegram-desktop/Telegram/' lib/xdg/io.github.tdesktop_x64.TDesktop.metainfo.xml
+sed -i '/<mediatype>x-scheme-handler\/tg<\/mediatype>/a \        <mediatype>x-scheme-handler/tonsite</mediatype>' lib/xdg/io.github.tdesktop_x64.TDesktop.metainfo.xml
 
 %build
 %__cmake -S build-tde2e -B build-tde2e/build \
@@ -183,6 +197,8 @@ sed -i "/#include <openssl\/engine.h>/d" Telegram/SourceFiles/core/utils.cpp
     -DTDESKTOP_API_HASH=d524b414d21f4d37f08684c1df41ac9c \
     -DDESKTOP_APP_USE_PACKAGED:BOOL=ON \
     -DDESKTOP_APP_USE_PACKAGED_FONTS:BOOL=OFF \
+    `# This will unbundle {kimageformats, fcitx5, hime, nimf}` \
+    -DDESKTOP_APP_DISABLE_QT_PLUGINS:BOOL=ON \
     -DDESKTOP_APP_DISABLE_WAYLAND_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_X11_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_CRASH_REPORTS:BOOL=ON \

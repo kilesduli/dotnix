@@ -7,7 +7,7 @@
 %global liftoff_ver 0.5.0
 
 Name:           wlroots
-Version:        0.19.0
+Version:        0.19.1
 Epoch:          1
 Release:        2%{?dist}
 Summary:        A modular Wayland compositor library
@@ -29,7 +29,7 @@ Summary:        A modular Wayland compositor library
 # the underlying licenses.
 License:        MIT
 URL:            https://gitlab.freedesktop.org/wlroots/wlroots
-Source0:        %{url}/-/releases/%{tag}/downloads/wlroots-%{version}.tar.gz
+Source0:        %{url}/-/releases/%{version}/downloads/wlroots-%{version}.tar.gz
 
 # this file is a modification of examples/meson.build so as to:
 # - make it self-contained
@@ -37,6 +37,8 @@ Source0:        %{url}/-/releases/%{tag}/downloads/wlroots-%{version}.tar.gz
 Source3:        examples.meson.build
 
 # Upstream patches
+# Noneed in 0.19.2
+Patch:          %{url}/-/commit/7392b331.patch#/wlroots-0.19.1-backend-output-send-commit-events-after-applying-all.patch
 
 # Patchs from:  https://aur.archlinux.org/cgit/aur.git/tree/?h=wlroots-hidpi-xprop-git
 Patch:          https://aur.archlinux.org/cgit/aur.git/plain/0001-Revert-compositor-send-WL_SURFACE_ERROR_INVALID_SIZE.patch?h=wlroots-hidpi-xprop-git#/0001-Revert-compositor-send-WL_SURFACE_ERROR_INVALID_SIZE.patch
