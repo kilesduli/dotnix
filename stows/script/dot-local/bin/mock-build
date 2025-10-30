@@ -50,9 +50,11 @@ echo "+ package_name=$name"
 
 echo "+ remaining_args: $@"
 
+fc_version=$(cut -d'-' -f2 <<< "$mock_config")
+
 rm -rf /tmp/$name
 mkdir -p /tmp/$name
-rpkg srpm --spec $spec_file --outdir /tmp/$name
+build-srpm --spec $spec_file --outdir /tmp/$name --fcversion ".fc$fc_version"
 
 if [[ -n ${chain:-} && ${chain} == "true" ]]; then
     mock -r $mock_config /tmp/$name/$name-*.src.rpm --chain --localrepo ${global_local_repo} "$@"
