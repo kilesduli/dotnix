@@ -120,8 +120,11 @@ diff --git a/Telegram/SourceFiles/media/view/media_view_overlay_widget.cpp b/Tel
 index 0977607..f728d28 100644
 --- a/Telegram/SourceFiles/media/view/media_view_overlay_widget.cpp
 +++ b/Telegram/SourceFiles/media/view/media_view_overlay_widget.cpp
-@@ -1110,7 +1110 @@ bool OverlayWidget::hasCopyMediaRestriction(bool skipPremiumCheck) const {
+@@ -1110,10 +1110,1 @@ bool OverlayWidget::hasCopyMediaRestriction(bool skipPremiumCheck) const {
 -	if (const auto story = _stories ? _stories->story() : nullptr) {
+-		if (story->call()) {
+-			return true;
+-		}
 -		return skipPremiumCheck
 -			? !story->canDownloadIfPremium()
 -			: !story->canDownloadChecked();

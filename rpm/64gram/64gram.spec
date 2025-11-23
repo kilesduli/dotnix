@@ -16,8 +16,8 @@
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.83
-Release:        1%{?dist}
+Version:        1.1.87
+Release:        3%{?dist}
 
 # Application and 3rd-party modules licensing:
 # * Telegram Desktop - GPL-3.0-or-later with OpenSSL exception -- main tarball;
