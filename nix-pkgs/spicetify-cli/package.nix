@@ -8,7 +8,7 @@ in
 spicetify-cli.overrideAttrs (old: rec {
   version = removePrefixv source-spicetify-cli.version + "-unstable";
   inherit (source-spicetify-cli) src;
-  vendorHash = "sha256-UwZ5wtZ5akmn3GF93XAqJqr9mUfbFQTD/LU8YUeoaGA=";
+  vendorHash = "sha256-DiVu/ePiZvn9+B/r8LS0qLt8eXKAtg4IXZ1WRzzAvcE=";
 
   patches = [ ];
 

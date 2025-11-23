@@ -1,6 +1,6 @@
 {
     "source-emacs-lsp-booster": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2025-01-07",
         "extract": null,
         "name": "source-emacs-lsp-booster",
@@ -21,8 +21,8 @@
         "version": "5f702a2699f306a3958ff1996a2b1a625f0cee0b"
     },
     "source-emacs-master": {
-        "cargoLocks": null,
-        "date": "2025-09-29",
+        "cargoLock": null,
+        "date": "2025-11-22",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -34,16 +34,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "6992d0e3bb79ac353f3d2335dba29431ccd64dc3",
-            "sha256": "sha256-1nOWnoTJQplyb+F0+DNO0JnMXlzUcF10ipLZecmr+U4=",
+            "rev": "cd86307f269de9dba9011d217517a45d6f180238",
+            "sha256": "sha256-lTrcFKbm2ZWRg+WrYyZ5Ng/5MjelJzZQMoq51yAm3l0=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "6992d0e3bb79ac353f3d2335dba29431ccd64dc3"
+        "version": "cd86307f269de9dba9011d217517a45d6f180238"
     },
     "source-emacs-master-igc": {
-        "cargoLocks": null,
-        "date": "2025-09-27",
+        "cargoLock": null,
+        "date": "2025-11-17",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -55,15 +55,15 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "a53627960e4cc45161538cb192086290272cd763",
-            "sha256": "sha256-wBom3WqnFwTw0R/vTgT1T31u1WmzMx9yG2CC6D2cnsg=",
+            "rev": "ec8e64f2a5cd9c02c2afdcc21509141c6a9c3989",
+            "sha256": "sha256-aoreE379fkHzY3832GxxPa2zt94CHT5PPo5LbeVu0rM=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "a53627960e4cc45161538cb192086290272cd763"
+        "version": "ec8e64f2a5cd9c02c2afdcc21509141c6a9c3989"
     },
     "source-librime-charcode": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2024-03-19",
         "extract": null,
         "name": "source-librime-charcode",
@@ -84,7 +84,7 @@
         "version": "55e7f563e999802d41a13ba02657c1be4b2011b4"
     },
     "source-librime-lua": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2025-07-07",
         "extract": null,
         "name": "source-librime-lua",
@@ -105,7 +105,7 @@
         "version": "68f9c364a2d25a04c7d4794981d7c796b05ab627"
     },
     "source-librime-octagram": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2024-11-18",
         "extract": null,
         "name": "source-librime-octagram",
@@ -126,7 +126,7 @@
         "version": "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8"
     },
     "source-librime-proto": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2023-10-17",
         "extract": null,
         "name": "source-librime-proto",
@@ -147,7 +147,7 @@
         "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
     },
     "source-spicetify-cli": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": null,
         "extract": null,
         "name": "source-spicetify-cli",
@@ -160,15 +160,15 @@
             "name": null,
             "owner": "spicetify",
             "repo": "cli",
-            "rev": "v2.42.0",
-            "sha256": "sha256-beMxE5ZpFqilgk4Xa0mvJyexDAFdwKUa1rJipFXBM7I=",
+            "rev": "v2.42.1",
+            "sha256": "sha256-O2bS5LYUMj4u7MksbWjGGgpQJ39/OlMAkFSHKrVIX/k=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "v2.42.0"
+        "version": "v2.42.1"
     },
     "source-zsh-jovial-theme": {
-        "cargoLocks": null,
+        "cargoLock": null,
         "date": "2025-05-12",
         "extract": null,
         "name": "source-zsh-jovial-theme",
