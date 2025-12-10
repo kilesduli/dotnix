@@ -11,7 +11,7 @@
 
 Summary:       Xwayland
 Name:          xorg-x11-server-Xwayland
-Version:       24.1.8
+Version:       24.1.9
 Epoch:         1
 Release:       1%{?dist}
 

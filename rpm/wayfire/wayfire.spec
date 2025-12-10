@@ -14,7 +14,7 @@
 
 Name:           wayfire
 Epoch:          1
-Version:        0.10.0
+Version:        0.10.1
 %forgemeta
 Release:        %autorelease
 Summary:        A modular and extensible wayland compositor
