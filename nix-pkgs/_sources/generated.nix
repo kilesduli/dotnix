@@ -8,39 +8,39 @@
 {
   source-emacs-lsp-booster = {
     pname = "source-emacs-lsp-booster";
-    version = "5f702a2699f306a3958ff1996a2b1a625f0cee0b";
+    version = "8059c7dce8f9abe26099f6e30e7824c63c5ebd79";
     src = fetchFromGitHub {
       owner = "blahgeek";
       repo = "emacs-lsp-booster";
-      rev = "5f702a2699f306a3958ff1996a2b1a625f0cee0b";
+      rev = "8059c7dce8f9abe26099f6e30e7824c63c5ebd79";
       fetchSubmodules = false;
-      sha256 = "sha256-R9v+hCma/FfYdR+fvZ0vmtVk4dm+bPBacwV1QCc6X+8=";
+      sha256 = "sha256-++YkiKyJhjynPTntHcF/PLsnQj2/enZwXe/F0mQ73vg=";
     };
-    date = "2025-01-07";
+    date = "2025-11-29";
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "cd86307f269de9dba9011d217517a45d6f180238";
+    version = "54ae1944e95c77be6492d69792413e507c2dfdb0";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "cd86307f269de9dba9011d217517a45d6f180238";
+      rev = "54ae1944e95c77be6492d69792413e507c2dfdb0";
       fetchSubmodules = false;
-      sha256 = "sha256-lTrcFKbm2ZWRg+WrYyZ5Ng/5MjelJzZQMoq51yAm3l0=";
+      sha256 = "sha256-wX7bTEfbjbklB2+0CjFULvTwE/WXMuS/4VejORloFZo=";
     };
-    date = "2025-11-22";
+    date = "2025-12-24";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "ec8e64f2a5cd9c02c2afdcc21509141c6a9c3989";
+    version = "03b258fe443ef1cbdeea516d8cf85077e5d6a3dc";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "ec8e64f2a5cd9c02c2afdcc21509141c6a9c3989";
+      rev = "03b258fe443ef1cbdeea516d8cf85077e5d6a3dc";
       fetchSubmodules = false;
-      sha256 = "sha256-aoreE379fkHzY3832GxxPa2zt94CHT5PPo5LbeVu0rM=";
+      sha256 = "sha256-yIp71yWa9mZNxCqwlrixLT+XRGQkPuQhHsuJUvZKUdg=";
     };
-    date = "2025-11-17";
+    date = "2025-12-06";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -92,13 +92,13 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "v2.42.1";
+    version = "v2.42.7";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "v2.42.1";
+      rev = "v2.42.7";
       fetchSubmodules = false;
-      sha256 = "sha256-O2bS5LYUMj4u7MksbWjGGgpQJ39/OlMAkFSHKrVIX/k=";
+      sha256 = "sha256-vbpHONTH8TFjVQHfBgPNiLbcefx41SeM9GngnDExu2M=";
     };
   };
   source-zsh-jovial-theme = {

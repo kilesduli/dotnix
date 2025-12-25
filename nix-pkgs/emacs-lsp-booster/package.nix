@@ -6,7 +6,7 @@ rustPlatform.buildRustPackage rec {
   pname = "emacs-lsp-booster";
   version = "0.2.1-unstable";
 
-  cargoHash = "sha256-qchwxW3KITQcv6EFzR2BSISWB2aTW9EdCN/bx5m0l48=";
+  cargoHash = "sha256-7lIceMT2hJplHU2VIN1O8IiGE6+DxO4/uM8pYS/qvlE=";
 
   # The tests contain what are essentially benchmarks—it seems prudent not to
   # stress our users' computers in that way every time they build the package.
