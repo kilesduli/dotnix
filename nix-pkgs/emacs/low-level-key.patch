@@ -1,0 +1,3078 @@
+From 5bf931588623aaf122bdb5c4515ce63b41f16636 Mon Sep 17 00:00:00 2001
+From: Cecilio Pardo <cpardo@imayhem.com>
+Date: Mon, 28 Oct 2024 23:57:35 +0100
+Subject: [PATCH 1/5] Add events for key press and key release on gui systems.
+
+And detection of double/triple taps on modifier keys.
+
+* lisp/low-level-key.el (llk-tap-timeout):
+(llk-tap-count):
+(llk-tap-keys):
+(llk-bindings):
+(llk-modifier-bindings):
+(llk-init):
+(llk-bind):
+(llk-modifier-bind):
+(llk-events):
+(llk-modifier-events):
+(llm-handle):
+* src/gtkutil.c (xg_create_frame_widgets):
+(xg_maybe_send_low_level_key_event):
+(xg_widget_key_press_event_cb):
+(xg_widget_key_release_event_cb):
+* src/xterm.c (x_maybe_send_physical_key_event):
+(x_filter_event):
+(handle_one_xevent):
+(syms_of_xterm):
+---
+ lisp/low-level-key.el | 141 +++++++++++++++++++++++++++++++++++++++++
+ src/gtkutil.c         | 133 ++++++++++++++++++++++++++++++++++++++
+ src/keyboard.c        |  38 +++++++++++
+ src/pgtkterm.c        |  37 +++++++++++
+ src/termhooks.h       |   2 +
+ src/w32fns.c          |  11 ++++
+ src/w32term.c         |  69 ++++++++++++++++++++
+ src/w32term.h         |   1 +
+ src/xterm.c           | 144 ++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 576 insertions(+)
+ create mode 100644 lisp/low-level-key.el
+
+diff --git a/lisp/low-level-key.el b/lisp/low-level-key.el
+new file mode 100644
+index 00000000000..639c082da15
+--- /dev/null
++++ b/lisp/low-level-key.el
+@@ -0,0 +1,141 @@
++;;; -*- lexical-binding: t -*-
++(require 'cl-lib)
++
++;; User options
++(defvar llk-tap-timeout 1000)
++(defvar llk-tap-count 2)
++(defvar llk-tap-keys
++  '(lshift rshift lctrl rctrl lalt ralt shift ctrl alt))
++(defvar llk-bindings nil)
++(defvar llm-bindings nil)
++
++(defun llk-init ()
++  (interactive)
++  (define-key special-event-map [low-level-key] 'llk-handle)
++  (define-key special-event-map [low-level-modifier] 'llm-handle)
++
++  (setq llk-bindings nil)
++  (setq llm-bindings nil)
++
++  ;; (llm-bind 'tap 'shift 'delete-other-windows)
++  ;; (llk-bind 'tap 'lctrl 'hyper)
++  (setq enable-low-level-key-events t))
++
++;; For example:
++;; (llk-add-binding 'tap 'lshift 'delete-other-windows)
++;; Can bind to a command, a function or the symbol 'hyper.
++(defun llk-bind (action key function)
++  (push (list action key function) llk-bindings))
++
++(defun llm-bind (action key function)
++  (push (list action key function) llm-bindings))
++
++;; We store the last events here to test for multitap.
++(defvar llk-events nil)
++(defvar llm-events nil)
++
++;; If positive, return key ('lshift, etc) else return nil.
++(defun llk-detect-n-tap (n timeout)
++  ;; The physical-key event is like this:
++  ;; (physical-key t lshift 90196265 #<frame>)
++  ;; The second element is t for a key press, nil for a key release
++  ;; The fourth element is the time in milliseconds
++  ;; The fifth is the frame, we don't use it yet.
++
++  (let ((key (cl-third last-input-event)))
++    (if (not (member key llk-tap-keys))
++        ;; Key not in tap list, clear history
++        (setq llk-events nil)
++      ;; Clear it also if the first element is from a different key
++      (and llk-events
++           (not (equal (cl-third (car llk-events)) key))
++           (setq llk-events nil))
++      (push last-input-event llk-events)
++      ;; Only care about last 2xN events
++      (ntake (* 2 n) llk-events)
++      ;; If we have:
++      ;; - Exactly 2 * n events.
++      ;; - down, up, down, up, ...
++      ;; - not two much time between first and last
++      (and (eq (* 2 n) (length llk-events))
++           (cl-every 'eq
++                     (ntake (* 2 n)
++                            (list nil t nil t nil t nil t
++                                  nil t nil t nil t nil t))
++                     (mapcar 'cl-second llk-events))
++           (< (- (cl-fourth (cl-first llk-events))
++                 (cl-fourth (car (last llk-events))))
++              timeout)
++           (progn
++             (setq llk-events nil)
++             key)))))
++
++
++;; this function is a copy of llk-detect-n-tap, but for llm-events
++(defun llm-detect-n-tap (n timeout)
++  (let ((key (cl-third last-input-event)))
++    (if (not (member key llk-tap-keys))
++        (setq llm-events nil)
++      (and llm-events
++           (not (equal (cl-third (car llm-events)) key))
++           (setq llm-events nil))
++      (push last-input-event llm-events)
++      (ntake (* 2 n) llm-events)
++      (and (eq (* 2 n) (length llm-events))
++           (cl-every 'eq
++                     (ntake (* 2 n)
++                            (list nil t nil t nil t nil t
++                                  nil t nil t nil t nil t))
++                     (mapcar 'cl-second llm-events))
++           (< (- (cl-fourth (cl-first llm-events))
++                 (cl-fourth (car (last llm-events))))
++              timeout)
++           (progn
++             (setq llm-events nil)
++             key)))))
++
++(defun llk-handle ()
++  (interactive)
++
++  (let ((tap-key (llk-detect-n-tap
++                  llk-tap-count
++                  llk-tap-timeout)))
++    (when tap-key
++      (let ((func (cl-third
++                   (seq-find
++                    (lambda (b)
++                      (and (eq (cl-first b) 'tap)
++                           (eq (cl-second b) tap-key)))
++                    llk-bindings))))
++        (cond
++         ((commandp func) (call-interactively func))
++         ((functionp func) (funcall func))
++         ((eq 'hyper func)
++          (message "H-...")
++          (let ((r (read-event)))
++            (setq unread-command-events
++                  (list (event-apply-modifier
++                         r 'hyper 24 "H-"))))))))))
++
++(defun llm-handle()
++  (interactive)
++
++  (let ((tap-key (llm-detect-n-tap
++                  llk-tap-count
++                  llk-tap-timeout)))
++    (when tap-key
++      (let ((func (cl-third
++                   (seq-find
++                    (lambda (b)
++                      (and (eq (cl-first b) 'tap)
++                           (eq (cl-second b) tap-key)))
++                    llm-bindings))))
++        (cond
++         ((commandp func) (call-interactively func))
++         ((functionp func) (funcall func))
++         ((eq 'hyper func)
++          (message "H-...")
++          (let ((r (read-event)))
++            (setq unread-command-events
++                  (list (event-apply-modifier
++                         r 'hyper 24 "H-"))))))))))
+diff --git a/src/gtkutil.c b/src/gtkutil.c
+index 9eaf4723bb0..081d975bad2 100644
+--- a/src/gtkutil.c
++++ b/src/gtkutil.c
+@@ -99,6 +99,7 @@ static void xg_im_context_commit (GtkIMContext *, gchar *, gpointer);
+ static void xg_im_context_preedit_changed (GtkIMContext *, gpointer);
+ static void xg_im_context_preedit_end (GtkIMContext *, gpointer);
+ static bool xg_widget_key_press_event_cb (GtkWidget *, GdkEvent *, gpointer);
++static bool xg_widget_key_release_event_cb (GtkWidget *, GdkEvent *, gpointer);
+ #endif
+ 
+ #if GTK_CHECK_VERSION (3, 10, 0)
+@@ -1859,6 +1860,12 @@ xg_create_frame_widgets (struct frame *f)
+   g_signal_connect (G_OBJECT (wfixed), "key-press-event",
+ 		    G_CALLBACK (xg_widget_key_press_event_cb),
+ 		    NULL);
++
++  g_signal_connect (G_OBJECT (wfixed), "key-release-event",
++		    G_CALLBACK (xg_widget_key_release_event_cb),
++		    NULL);
++
++
+ #endif
+ 
+   {
+@@ -6501,6 +6508,105 @@ xg_im_context_preedit_end (GtkIMContext *imc, gpointer user_data)
+   kbd_buffer_store_event (&inev);
+ }
+ 
++static void
++xg_maybe_send_low_level_key_event (struct frame *f,
++				   GdkEvent *xev)
++{
++  GdkEventKey xkey = xev->key;
++  bool is_press;
++  int keysym;
++  Lisp_Object key, modifier;
++  union buffered_input_event inev;
++
++  if (!Venable_low_level_key_events)
++    return;
++  switch (xev->type)
++    {
++    case GDK_KEY_PRESS:
++      is_press = true;
++      break;
++    case GDK_KEY_RELEASE:
++      is_press = false;
++      break;
++    default:
++      return;
++    }
++
++  keysym = xkey.keyval;
++
++  switch (keysym)
++    {
++    case GDK_KEY_Shift_L: key = Qlshift; break;
++    case GDK_KEY_Shift_R: key = Qrshift; break;
++    case GDK_KEY_Control_L: key = Qlctrl; break;
++    case GDK_KEY_Control_R: key = Qrctrl; break;
++    case GDK_KEY_Alt_L: key = Qlalt; break;
++    case GDK_KEY_Alt_R: key = Qralt; break;
++    default:
++      key = Qnil;
++    }
++
++   switch (keysym)
++    {
++    case GDK_KEY_Shift_L:
++    case GDK_KEY_Shift_R:
++      modifier = Qshift;
++      break;
++    case GDK_KEY_Control_L:
++    case GDK_KEY_Control_R:
++      modifier = Vx_ctrl_keysym;
++      if (NILP (modifier))
++	modifier = Qctrl;
++      break;
++    case GDK_KEY_Alt_L:
++    case GDK_KEY_Alt_R:
++      modifier = Vx_meta_keysym;
++      if (NILP (modifier))
++	modifier = Qalt;
++      break;
++    case GDK_KEY_Meta_L:
++    case GDK_KEY_Meta_R:
++      modifier = Vx_meta_keysym;
++      if (NILP (modifier))
++	modifier = Qmeta;
++      break;
++    case GDK_KEY_Hyper_L:
++    case GDK_KEY_Hyper_R:
++      modifier = Vx_hyper_keysym;
++      if (NILP (modifier))
++	modifier = Qhyper;
++      break;
++    case GDK_KEY_Super_L:
++    case GDK_KEY_Super_R:
++      modifier = Vx_super_keysym;
++      if (NILP (modifier))
++	modifier = Qsuper;
++      break;
++    default:
++      modifier = Qnil;
++    }
++
++  if (!NILP (key))
++    {
++      EVENT_INIT (inev.ie);
++      XSETFRAME (inev.ie.frame_or_window, f);
++      inev.ie.kind = LOW_LEVEL_KEY_EVENT;
++      inev.ie.timestamp = xkey.time;
++      inev.ie.arg = list2 (is_press ? Qt : Qnil, key);
++      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
++    }
++
++  if (!NILP (modifier))
++    {
++      EVENT_INIT (inev.ie);
++      XSETFRAME (inev.ie.frame_or_window, f);
++      inev.ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
++      inev.ie.timestamp = xkey.time;
++      inev.ie.arg = list2 (is_press ? Qt : Qnil, modifier);
++      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
++    }
++}
++
+ static bool
+ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+ 			      gpointer user_data)
+@@ -6529,6 +6635,10 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+   if (!f)
+     return true;
+ 
++#ifndef HAVE_XINPUT2
++    xg_maybe_send_low_level_key_event (f, event);
++#endif
++
+   if (popup_activated ())
+     return true;
+ 
+@@ -6682,6 +6792,29 @@ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+   return true;
+ }
+ 
++static bool
++xg_widget_key_release_event_cb (GtkWidget *widget, GdkEvent *event,
++				gpointer user_data)
++{
++#ifndef HAVE_XINPUT2
++  Lisp_Object tail, tem;
++  struct frame *f = NULL;
++
++  FOR_EACH_FRAME (tail, tem)
++    {
++      if (FRAME_X_P (XFRAME (tem))
++	  && (FRAME_GTK_WIDGET (XFRAME (tem)) == widget))
++	{
++	  f = XFRAME (tem);
++	  break;
++	}
++    }
++  if (f)
++    xg_maybe_send_low_level_key_event (f, event);
++#endif
++  return true;
++}
++
+ bool
+ xg_filter_key (struct frame *frame, XEvent *xkey)
+ {
+diff --git a/src/keyboard.c b/src/keyboard.c
+index 776b87bde73..20c9cb1f28f 100644
+--- a/src/keyboard.c
++++ b/src/keyboard.c
+@@ -4301,6 +4301,8 @@ kbd_buffer_get_event (KBOARD **kbp,
+       case FOCUS_OUT_EVENT:
+       case SELECT_WINDOW_EVENT:
+       case SLEEP_EVENT:
++      case LOW_LEVEL_KEY_EVENT:
++      case LOW_LEVEL_MODIFIER_KEY_EVENT:
+         {
+           obj = make_lispy_event (&event->ie);
+           kbd_fetch_ptr = next_kbd_event (event);
+@@ -7262,6 +7264,22 @@ make_lispy_event (struct input_event *event)
+     case PREEDIT_TEXT_EVENT:
+       return list2 (Qpreedit_text, event->arg);
+ 
++    case LOW_LEVEL_KEY_EVENT:
++      return listn (5,
++		    Qlow_level_key,
++		    XCAR (event->arg), /* Press or release.  */
++		    XCAR (XCDR (event->arg)), /* The key symbol.  */
++		    make_fixnum (event->timestamp),
++		    event->frame_or_window);
++
++    case LOW_LEVEL_MODIFIER_KEY_EVENT:
++      return listn (5,
++		    Qlow_level_modifier,
++		    XCAR (event->arg), /* Press or release.  */
++		    XCAR (XCDR (event->arg)), /* The key symbol.  */
++		    make_fixnum (event->timestamp),
++		    event->frame_or_window);
++
+       /* The 'kind' field of the event is something we don't recognize.  */
+     default:
+       emacs_abort ();
+@@ -13420,6 +13438,20 @@ syms_of_keyboard (void)
+   DEFSYM (Qfile_notify, "file-notify");
+ #endif /* USE_FILE_NOTIFY */
+ 
++  DEFVAR_LISP ("enable-low-level-key-events", Venable_low_level_key_events,
++	       doc: /* Enabled the recepcion of low level key events.
++This includes 'low-level-key' and 'low-level-modifier' events.  */);
++  Venable_low_level_key_events = false;
++
++  DEFSYM (Qlow_level_key, "low-level-key");
++  DEFSYM (Qlow_level_modifier, "low-level-modifier");
++  DEFSYM (Qlshift, "lshift");
++  DEFSYM (Qrshift, "rshift");
++  DEFSYM (Qlctrl, "lctrl");
++  DEFSYM (Qrctrl, "rctrl");
++  DEFSYM (Qlalt, "lalt");
++  DEFSYM (Qralt, "ralt");
++
+   DEFSYM (Qtouch_end, "touch-end");
+   DEFSYM (Qsleep_event, "sleep-event");
+ 
+@@ -14521,6 +14553,12 @@ keys_of_keyboard (void)
+ 			    "handle-move-frame");
+   initial_define_lispy_key (Vspecial_event_map, "sleep-event",
+ 			    "ignore");
++  initial_define_lispy_key (Vspecial_event_map, "low-level-key",
++			    "ignore");
++  initial_define_lispy_key (Vspecial_event_map, "low-level-modifier",
++			    "ignore");
++
++
+ }
+ 
+ /* Mark the pointers in the kboard objects.
+diff --git a/src/pgtkterm.c b/src/pgtkterm.c
+index a7be2d90899..ff40f24ab37 100644
+--- a/src/pgtkterm.c
++++ b/src/pgtkterm.c
+@@ -5229,6 +5229,39 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
+   evq_enqueue (&inev);
+ }
+ 
++static void
++pgtk_maybe_send_low_level_key_event (GdkEvent *event)
++{
++  if (!Venable_low_level_key_events)
++    return;
++
++  Lisp_Object key;
++  switch (event->key.keyval)
++    {
++    case GDK_KEY_Shift_L: key = Qlshift; break;
++    case GDK_KEY_Shift_R: key = Qrshift; break;
++    case GDK_KEY_Control_L: key = Qlctrl; break;
++    case GDK_KEY_Control_R: key = Qrctrl; break;
++    case GDK_KEY_Alt_L: key = Qlalt; break;
++    case GDK_KEY_Alt_R: key = Qralt; break;
++    default:
++      return;
++    }
++  bool keypress = event->key.type == GDK_KEY_PRESS;
++  struct frame *f = pgtk_any_window_to_frame (event->key.window);
++  if (!f)
++    return;
++
++  union buffered_input_event inev;
++
++  EVENT_INIT (inev.ie);
++  XSETFRAME (inev.ie.frame_or_window, f);
++  inev.ie.kind = LOW_LEVEL_KEY_EVENT;
++  inev.ie.timestamp = event->key.time;
++  inev.ie.arg = list2 (keypress ? Qt : Qnil, key);
++  evq_enqueue (&inev);
++}
++
+ static gboolean
+ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
+ {
+@@ -5238,6 +5271,8 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
+   struct frame *f;
+   struct pgtk_display_info *dpyinfo;
+ 
++  pgtk_maybe_send_low_level_key_event(event);
++
+   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
+   EVENT_INIT (inev.ie);
+   hlinfo = MOUSE_HL_INFO (f);
+@@ -5482,6 +5517,8 @@ key_release_event (GtkWidget *widget,
+   GdkDisplay *display;
+   struct pgtk_display_info *dpyinfo;
+ 
++  pgtk_maybe_send_low_level_key_event(event);
++
+   display = gtk_widget_get_display (widget);
+   dpyinfo = pgtk_display_info_for_display (display);
+ 
+diff --git a/src/termhooks.h b/src/termhooks.h
+index 5e861051498..723a9cd42f6 100644
+--- a/src/termhooks.h
++++ b/src/termhooks.h
+@@ -354,6 +354,8 @@ enum event_kind
+   /* In a NOTIFICATION_EVENT, .arg is a lambda to evaluate.  */
+   , NOTIFICATION_EVENT
+ #endif /* HAVE_ANDROID */
++  , LOW_LEVEL_KEY_EVENT
++  , LOW_LEVEL_MODIFIER_KEY_EVENT
+ };
+ 
+ /* Bit width of an enum event_kind tag at the start of structs and unions.  */
+diff --git a/src/w32fns.c b/src/w32fns.c
+index 158de459fea..a79e5c329be 100644
+--- a/src/w32fns.c
++++ b/src/w32fns.c
+@@ -4685,6 +4685,11 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+     case WM_KEYUP:
+     case WM_SYSKEYUP:
+       record_keyup (wParam, lParam);
++      if (Venable_low_level_key_events)
++	{
++	  signal_user_input ();
++	  my_post_msg( &wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam );
++	}
+       goto dflt;
+ 
+     case WM_KEYDOWN:
+@@ -4711,6 +4716,12 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+       if (w32_use_fallback_wm_chars_method)
+ 	wParam = map_keypad_keys (wParam, (lParam & 0x1000000L) != 0);
+ 
++      if (Venable_low_level_key_events)
++	{
++	  signal_user_input ();
++	  my_post_msg( &wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam );
++	}
++
+       windows_translate = 0;
+ 
+       switch (wParam)
+diff --git a/src/w32term.c b/src/w32term.c
+index 80b072d6b5d..31ce0049731 100644
+--- a/src/w32term.c
++++ b/src/w32term.c
+@@ -5270,6 +5270,75 @@ w32_read_socket (struct terminal *terminal,
+ 	    }
+ 	  break;
+ 
++	case WM_EMACS_LOW_LEVEL_KEY:
++	  WORD key_flags = HIWORD (msg.msg.lParam);
++	  BOOL is_wm_keyup = key_flags & KF_UP;
++
++	  if (is_wm_keyup || (key_flags & KF_REPEAT) == 0) /* WM_KEYDOWN, not repeating.  */
++	    {
++	      WORD scan_code = LOBYTE (key_flags);
++	      if (key_flags & KF_EXTENDED)
++		scan_code = MAKEWORD (scan_code, 0xE0);
++
++	      UINT translated = MapVirtualKey (scan_code, MAPVK_VSC_TO_VK_EX);
++	      WORD vk = LOWORD (msg.msg.wParam);
++	      if (translated)
++		vk = LOWORD (translated);
++
++	      Lisp_Object key = Qnil;
++	      Lisp_Object modifier = Qnil;
++
++	      switch (vk)
++		{
++		case VK_LSHIFT: key = Qlshift; break;
++		case VK_RSHIFT: key = Qrshift; break;
++		case VK_LCONTROL: key = Qlctrl; break;
++		case VK_RCONTROL: key = Qrctrl; break;
++		case VK_LMENU: key = Qlalt; break;
++		case VK_RMENU: key = Qralt; break;
++		}
++
++	      switch (vk)
++		{
++		case VK_LSHIFT:
++		case VK_RSHIFT:
++		  modifier = Qshift;
++		  break;
++		case VK_LCONTROL:
++		case VK_RCONTROL:
++		  modifier = Qctrl;
++		  break;
++		case VK_LMENU:
++		case VK_RMENU:
++		  modifier = Qmeta;
++		  break;
++		}
++
++	      if (!NILP (key))
++		{
++		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
++		  inev.kind = LOW_LEVEL_KEY_EVENT;
++		  XSETFRAME (inev.frame_or_window, f);
++		  inev.timestamp = msg.msg.time;
++		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, key);
++		  kbd_buffer_store_event_hold (&inev, hold_quit);
++
++		}
++
++	      if (!NILP (modifier))
++		{
++		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
++		  inev.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
++		  XSETFRAME (inev.frame_or_window, f);
++		  inev.timestamp = msg.msg.time;
++		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, modifier);
++		  kbd_buffer_store_event_hold (&inev, hold_quit);
++		}
++	      inev.kind = NO_EVENT;
++
++	    }
++	  break;
++
+         case WM_UNICHAR:
+ 	case WM_SYSCHAR:
+ 	case WM_CHAR:
+diff --git a/src/w32term.h b/src/w32term.h
+index b92749f302b..aba5764011a 100644
+--- a/src/w32term.h
++++ b/src/w32term.h
+@@ -716,6 +716,7 @@ do { \
+ #define WM_EMACS_DROP                  (WM_EMACS_START + 28)
+ #define WM_EMACS_END                   (WM_EMACS_START + 29)
+ #define WM_EMACS_SET_TOOLKIT_THEME     (WM_EMACS_START + 30)
++#define WM_EMACS_LOW_LEVEL_KEY         (WM_EMACS_START + 31)
+ 
+ #define WND_FONTWIDTH_INDEX    (0)
+ #define WND_LINEHEIGHT_INDEX   (4)
+diff --git a/src/xterm.c b/src/xterm.c
+index 088eaee83c9..37aac9ac04e 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -17825,6 +17825,143 @@ static struct x_display_info *XTread_socket_fake_io_error;
+ 
+ static struct x_display_info *next_noop_dpyinfo;
+ 
++static void
++x_maybe_send_low_level_key_event (struct x_display_info *dpyinfo,
++				  const XEvent *xev)
++{
++  XKeyEvent xkey;
++  bool is_press;
++  KeySym keysym;
++  Lisp_Object key, modifier;
++  struct input_event ie;
++
++  if (!Venable_low_level_key_events)
++    return;
++
++  switch (xev->type)
++    {
++    case KeyPress:
++      is_press = true;
++      xkey = xev->xkey;
++      break;
++    case KeyRelease:
++      is_press = false;
++      xkey = xev->xkey;
++      break;
++#ifdef HAVE_XINPUT2
++    case GenericEvent:
++      XIDeviceEvent *xiev = xev->xcookie.data;
++      switch (xev->xgeneric.evtype)
++	{
++	case XI_KeyPress:
++	  is_press = true;
++	  break;
++	case XI_KeyRelease:
++	  is_press = false;
++	  break;
++	default:
++	  return;
++	}
++
++      xkey.serial = xiev->serial;
++      xkey.send_event = xiev->send_event;
++      xkey.display = xiev->display;
++      xkey.window = xiev->event;
++      xkey.root = xiev->root;
++      xkey.subwindow = xiev->child;
++      xkey.time = xiev->time;
++      xkey.x = xiev->event_x;
++      xkey.y = xiev->event_y;
++      xkey.x_root = xiev->root_x;
++      xkey.y_root = xiev->root_y;
++      xkey.state = xiev->mods.effective;
++      xkey.keycode = xiev->detail;
++      xkey.same_screen = 1;
++      break;
++#endif
++    default:
++      return;
++    }
++
++  struct frame *f = x_any_window_to_frame (dpyinfo, xkey.window);
++  if (!f)
++    return;
++
++  XLookupString (&xkey, NULL, 0, &keysym, NULL);
++
++  switch (keysym)
++    {
++    case XK_Shift_L: key = Qlshift; break;
++    case XK_Shift_R: key = Qrshift; break;
++    case XK_Control_L: key = Qlctrl; break;
++    case XK_Control_R: key = Qrctrl; break;
++    case XK_Alt_L: key = Qlalt; break;
++    case XK_Alt_R: key = Qralt; break;
++    default:
++      key = Qnil;
++    }
++
++   switch (keysym)
++    {
++    case XK_Shift_L:
++    case XK_Shift_R:
++      modifier = Qshift;
++      break;
++    case XK_Control_L:
++    case XK_Control_R:
++      modifier = Vx_ctrl_keysym;
++      if (NILP (modifier))
++	modifier = Qctrl;
++      break;
++    case XK_Alt_L:
++    case XK_Alt_R:
++      modifier = Vx_meta_keysym;
++      if (NILP (modifier))
++	modifier = Qalt;
++      break;
++    case XK_Meta_L:
++    case XK_Meta_R:
++      modifier = Vx_meta_keysym;
++      if (NILP (modifier))
++	modifier = Qmeta;
++      break;
++    case XK_Hyper_L:
++    case XK_Hyper_R:
++      modifier = Vx_hyper_keysym;
++      if (NILP (modifier))
++	modifier = Qhyper;
++      break;
++    case XK_Super_L:
++    case XK_Super_R:
++      modifier = Vx_super_keysym;
++      if (NILP (modifier))
++	modifier = Qsuper;
++      break;
++    default:
++      modifier = Qnil;
++    }
++
++  if (!NILP (key))
++    {
++      EVENT_INIT (ie);
++      XSETFRAME (ie.frame_or_window, f);
++      ie.kind = LOW_LEVEL_KEY_EVENT;
++      ie.timestamp = xkey.time;
++      ie.arg = list2 (is_press ? Qt : Qnil, key);
++      kbd_buffer_store_event (&ie);
++    }
++
++  if (!NILP (modifier))
++    {
++      EVENT_INIT (ie);
++      XSETFRAME (ie.frame_or_window, f);
++      ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
++      ie.timestamp = xkey.time;
++      ie.arg = list2 (is_press ? Qt : Qnil, key);
++      kbd_buffer_store_event (&ie);
++    }
++}
++
+ /* Filter events for the current X input method.
+    DPYINFO is the display this event is for.
+    EVENT is the X event to filter.
+@@ -20185,6 +20322,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+       goto OTHER;
+ 
+     case KeyPress:
++      x_maybe_send_low_level_key_event (dpyinfo, event);
+       x_display_set_last_user_time (dpyinfo, event->xkey.time,
+ 				    event->xkey.send_event,
+ 				    true);
+@@ -20694,6 +20832,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ #endif
+ 
+     case KeyRelease:
++      x_maybe_send_low_level_key_event (dpyinfo, event);
+ #ifdef HAVE_X_I18N
+       /* Don't dispatch this event since XtDispatchEvent calls
+          XFilterEvent, and two calls in a row may freeze the
+@@ -23958,6 +24097,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ 	      struct xi_device_t *device, *source;
+ 	      XKeyPressedEvent xkey;
+ 
++	      x_maybe_send_low_level_key_event (dpyinfo, event);
++
+ 	      coding = Qlatin_1;
+ 
+ 	      /* The code under this label is quite desultory.  There
+@@ -24574,6 +24715,8 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ #endif
+ 
+ 	  case XI_KeyRelease:
++	    x_maybe_send_low_level_key_event (dpyinfo, event);
++
+ #if defined HAVE_X_I18N || defined USE_GTK || defined USE_LUCID
+ 	    {
+ 	      XKeyPressedEvent xkey;
+@@ -32695,6 +32838,7 @@ Android does not support scroll bars at all.  */);
+   Vx_toolkit_scroll_bars = Qnil;
+ #endif
+ 
++  DEFSYM (Qshift, "shift");
+   DEFSYM (Qmodifier_value, "modifier-value");
+   DEFSYM (Qctrl, "ctrl");
+   Fput (Qctrl, Qmodifier_value, make_fixnum (ctrl_modifier));
+-- 
+2.52.0
+
+From f6981f08658723b3c1838991c797e431b13b1453 Mon Sep 17 00:00:00 2001
+From: Cecilio Pardo <cpardo@imayhem.com>
+Date: Mon, 2 Dec 2024 17:30:42 +0100
+Subject: [PATCH 2/5] Send event for key presses and key releases.
+
+Detect double/tripe taps.
+
+[FIXME: Need adjustments in the description below!]
+
+* src/gtkutil.c (xg_create_frame_widgets): Modified to handle key
+release events.
+(xg_maybe_send_low_level_key_event): New function that sends key
+events.
+(xg_widget_key_press_event_cb): Modified to send low level key events.
+(xg_widget_key_release_event_cb):New function to send low level key
+events on key release.
+* src/keyboard.c (kbd_buffer_get_event): Modified to handle low level
+keyboard events.
+(make_lispy_event): Modified to handle low level keyboard events.
+(kbd_low_level_key_is_enabled): New function to decice if a particular
+key should generate events, looking at configuration,
+(syms_of_keyboard): Added symbols and varialbles.
+(keys_of_keyboard): Modified to map low level key events to
+'special-event-map'.
+* src/keyboard.h: Modified with function prototype.
+* src/pgtkterm.c (pgtk_maybe_send_low_level_key_event): New function
+that sends key events.
+(key_press_event): Modified to handle low level keyboard events.
+(key_release_event): Modified to handle low level keyboard events.
+* src/termhooks.h: Modified to define constant.
+* src/w32fns.c (w32_wnd_proc): Modified to generate low level key
+events.
+* src/w32term.c (w32_read_socket): Modified to generate low level key
+events.
+* src/xterm.c (x_get_modifier_for_keycode): New function to decide
+which (if any) modifier corresponds to a given key.
+(x_maybe_send_low_level_key_event): New function that sends key
+events.
+(handle_one_xevent): Modified to handle low level key events.
+(syms_of_xterm): Modified to definde symbol.
+* src/xterm.h: Modified with function prototype
+* lisp/low-level-key.el (New file).
+(llk-bindings): User bindings for low level key events.
+(llk-tap-count): User option.
+(llk-tap-timeout): User option.
+(llk-tap-keys): User option.
+(llk-keysyms): List of available keysyms.
+(define-xk): Macro for defining keysyms.
+(llk-define-keysyms): Build llk-keysyms.
+(llk-init): Function to initialize low level key handling.
+(event-is-key-press): Get field from event.
+(event-keysym): Get field from event.
+(event-modifier): Get field from event.
+(event-time): Get field from event.
+(llk-bind): Function to create a binding.
+(llk-events): Event history for tap detection.
+(llk-detect-n-tap): Function to detect taps.
+(describe-low-level-key): Command to get information about a key.
+(llk-show-event-description): Show help buffer with information
+about an event.
+(llk-handle): Handler for key events.
+---
+ lisp/low-level-key.el | 388 +++++++++++++++++++++++++++++++-----------
+ src/gtkutil.c         |  90 +++-------
+ src/keyboard.c        |  73 +++++---
+ src/keyboard.h        |   1 +
+ src/pgtkterm.c        |  52 ++++--
+ src/termhooks.h       |   1 -
+ src/w32fns.c          |   8 +-
+ src/w32term.c         |  26 +--
+ src/xterm.c           | 148 ++++++++--------
+ src/xterm.h           |   2 +
+ 10 files changed, 476 insertions(+), 313 deletions(-)
+
+diff --git a/lisp/low-level-key.el b/lisp/low-level-key.el
+index 639c082da15..85cdaaaf0f4 100644
+--- a/lisp/low-level-key.el
++++ b/lisp/low-level-key.el
+@@ -1,56 +1,277 @@
+ ;;; -*- lexical-binding: t -*-
++
++;; The physical-key event is like this:
++;; (physical-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
++;; IS-KEY-PRESS is t if the key has been pressed, nil if it has been released.
++;; KEY is the keysym number.
++;; MODIFIER is the modifier associated with this key. It is nil if the key is
++;; not a modifier. It can be one of the following symbols: shift, control, meta,
++;; super, hyper, alt. It can also be t if the key is a modifier but it can't be
++;; identified.
++;; TIME is the timestamp in milliseconds of the event.
++;; FRAME is the frame where the event happened.
++;;
++;; After calling 'llk-init' and setting a non-nil value for
++;; 'enable-low-level-key-events', events begin to be handled by 'llk-handler',
++;; which tries to detect n-taps and calls the corresponding function.
++
+ (require 'cl-lib)
+ 
+ ;; User options
+-(defvar llk-tap-timeout 1000)
+-(defvar llk-tap-count 2)
++
++(defvar llk-bindings nil
++  "Bindings for low level key events (press/release/tap).
++Use the `llk-bind' function to add bindings.  See its documentation for
++a description of the binding information.")
++
++(defvar llk-tap-count 2
++  "Number or key press/releases to consider a tap.")
++
++(defvar llk-tap-timeout 1000
++  "Time in milliseconds between consecutive key presses/releases to
++consider a tap.")
++
+ (defvar llk-tap-keys
+-  '(lshift rshift lctrl rctrl lalt ralt shift ctrl alt))
+-(defvar llk-bindings nil)
+-(defvar llm-bindings nil)
++  '(xk-shift-l xk-shift-r xk-control-l xk-control-r meta)
++  "Keys that can generate taps.")
++
++(defvar llk-keysyms nil
++  "List of keysym numbers and their corresponding symbols.
++Each element has the form (KEYSYM . SYMBOL).  The variable value for
++each symbol is the keysym.  This list is initialized by `llk-init'.")
++
++(defvar llk-describe-next-press nil
++  "Internal variable to mark that next key press should be described.")
++
++(defmacro define-xk (name x-keysym w32-keysym)
++  "Internal macro to define keysyms."
++  `(let ((ksym (pcase (window-system)
++                 ('pgtk ,x-keysym)
++                 ('x ,x-keysym)
++                 ('w32 ,w32-keysym))))
++     (defconst ,name ksym "Constant for a keysym value.")
++     (push (cons ksym ',name) llk-keysyms)))
++
++(defun llk-define-keysyms ()
++  "Initialize the keysym list, `llk-keysyms'.  Called from `llk-init'."
++  (setq llk-keysyms nil)
++
++  ;; tty keys
++  (define-xk xk-backspace   #xff08 #x08) ;; XK_BackSpace VK_BACK
++  (define-xk xk-tab         #xff09 #x09) ;; XK_Tab VK_TAB
++  (define-xk xk-clear       #xff0b #x0C) ;; XK_Clear VK_CLEAR
++  (define-xk xk-return      #xff0d #x0D) ;; XK_Return VK_RETURN
++  (define-xk xk-pause       #xff13 #x13) ;; XK_Pause VK_PAUSE
++  (define-xk xk-scroll-lock #xff14 #x91) ;; XK_Scroll_Lock VK_SCROLL
++  (define-xk xk-escape      #xff1B #x1B) ;; XK_Escape VK_ESCAPE
++  (define-xk xk-delete      #xffff #x2E) ;; XK_Delete VK_DELETE
++
++  ;; Cursor control and motion
++  (define-xk xk-home        #xff50 #x24) ;; XK_Home VK_HOME
++  (define-xk xk-left        #xff51 #x25) ;; XK_Left VK_LEFT
++  (define-xk xk-up          #xff52 #x26) ;; XK_Up VK_UP
++  (define-xk xk-right       #xff53 #x27) ;; XK_Right VK_RIGHT
++  (define-xk xk-down        #xff54 #x28) ;; XK_Down VK_DOWN
++  (define-xk xk-page-up     #xff55 #x21) ;; XK_Page_Up VK_PRIOR
++  (define-xk xk-page-down   #xff56 #x22) ;; XK_Page_Down VK_NEXT
++  (define-xk xk-end         #xff57 #x23) ;; XK_End VK_END
++  (define-xk xk-begin       #xff58 #x24) ;; XK_Begin VK_HOME
++
++  ;; Special Windows keyboard keys
++  (define-xk xk-win-l       #xFF5B #x5B) ;; XK_Win_L VK_LWIN
++  (define-xk xk-win-r       #xFF5C #x5C) ;; XK_Win_R VK_RWIN
++  (define-xk xk-app         #xFF5D #x5D) ;; XK_App VK_APPS
++
++  ;; Misc functions
++  (define-xk xk-select      #xff60 #x29) ;; XK_Select VK_SELECT
++  (define-xk xk-print       #xff61 #x2A) ;; XK_Print VK_PRINT
++  (define-xk xk-insert      #xff64 #x2D) ;; XK_Insert VK_INSERT
++  (define-xk xk-num-lock    #xff7f #x90) ;; XK_Num_Lock VK_NUMLOCK
++
++  ;; Keypad
++  ;; TODO: Check values for MS-Windows
++  (define-xk xk-kp-enter    #xff8d nil) ;; XK_KP_Enter ???
++  (define-xk xk-kp-multiply #xffaa nil) ;; XK_KP_Multiply ???
++  (define-xk xk-kp-add      #xffab nil) ;; XK_KP_Add ???
++  (define-xk xk-kp-subtract #xffad nil) ;; XK_KP_Subtract ???
++  (define-xk xk-kp-decimal  #xffae nil) ;; XK_KP_Decimal ???
++  (define-xk xk-kp-divide   #xffaf nil) ;; XK_KP_Divide ???
++  (define-xk xk-kp-0        #xffb0 #x60) ;; XK_KP_0 VK_NUMPAD0
++  (define-xk xk-kp-1        #xffb1 #x61) ;; XK_KP_1 VK_NUMPAD1
++  (define-xk xk-kp-2        #xffb2 #x62) ;; XK_KP_2 VK_NUMPAD2
++  (define-xk xk-kp-3        #xffb3 #x63) ;; XK_KP_3 VK_NUMPAD3
++  (define-xk xk-kp-4        #xffb4 #x64) ;; XK_KP_4 VK_NUMPAD4
++  (define-xk xk-kp-5        #xffb5 #x65) ;; XK_KP_5 VK_NUMPAD5
++  (define-xk xk-kp-6        #xffb6 #x66) ;; XK_KP_6 VK_NUMPAD6
++  (define-xk xk-kp-7        #xffb7 #x67) ;; XK_KP_7 VK_NUMPAD7
++  (define-xk xk-kp-8        #xffb8 #x68) ;; XK_KP_8 VK_NUMPAD8
++  (define-xk xk-kp-9        #xffb9 #x69) ;; XK_KP_9 VK_NUMPAD9
++
++  ;; Function keys
++  (define-xk xk-f1          #xffbe #x70) ;; XK_F1 VK_F1
++  (define-xk xk-f2          #xffbf #x71) ;; XK_F2 VK_F2
++  (define-xk xk-f3          #xffc0 #x72) ;; XK_F3 VK_F3
++  (define-xk xk-f4          #xffc1 #x73) ;; XK_F4 VK_F4
++  (define-xk xk-f5          #xffc2 #x74) ;; XK_F5 VK_F5
++  (define-xk xk-f6          #xffc3 #x75) ;; XK_F6 VK_F6
++  (define-xk xk-f7          #xffc4 #x76) ;; XK_F7 VK_F7
++  (define-xk xk-f8          #xffc5 #x77) ;; XK_F8 VK_F8
++  (define-xk xk-f9          #xffc6 #x78) ;; XK_F9 VK_F9
++  (define-xk xk-f10         #xffc7 #x79) ;; XK_F10 VK_F10
++  (define-xk xk-f11         #xffc8 #x7A) ;; XK_F11 VK_F11
++  (define-xk xk-f12         #xffc9 #x7B) ;; XK_F12 VK_F12
++  (define-xk xk-f13         #xffca #x7C) ;; XK_F13 VK_F13
++  (define-xk xk-f14         #xffcb #x7D) ;; XK_F14 VK_F14
++  (define-xk xk-f15         #xffcc #x7E) ;; XK_F15 VK_F15
++  (define-xk xk-f16         #xffcd #x7F) ;; XK_F16 VK_F16
++  (define-xk xk-f17         #xffce #x80) ;; XK_F17 VK_F17
++  (define-xk xk-f18         #xffcf #x81) ;; XK_F18 VK_F18
++  (define-xk xk-f19         #xffd0 #x82) ;; XK_F19 VK_F19
++  (define-xk xk-f20         #xffd1 #x83) ;; XK_F20 VK_F20
++  (define-xk xk-f21         #xffd2 #x84) ;; XK_F21 VK_F21
++  (define-xk xk-f22         #xffd3 #x85) ;; XK_F22 VK_F22
++  (define-xk xk-f23         #xffd4 #x86) ;; XK_F23 VK_F23
++  (define-xk xk-f24         #xffd5 #x87) ;; XK_F24 VK_F24
++
++  ;; Modifier keys
++  (define-xk xk-shift-l     #xffe1 #xA0) ;; XK_Shift_L VK_LSHIFT
++  (define-xk xk-shift-r     #xffe2 #xA1) ;; XK_Shift_R VK_RSHIFT
++  (define-xk xk-control-l   #xffe3 #xA2) ;; XK_Control_L VK_LCONTROL
++  (define-xk xk-control-r   #xffe4 #xA3) ;; XK_Control_R VK_RCONTROL
++  (define-xk xk-caps-lock   #xffe5 #x14) ;; XK_Caps_Lock VK_CAPITAL
++  (define-xk xk-metal-l     #xffe7 nil) ;; XK_Meta_L
++  (define-xk xk-metal-t     #xffee nil) ;; XK_Meta_R
++  (define-xk xk-alt-l       #xffe9 #xA4) ;; XK_Alt_L VK_LMENU
++  (define-xk xk-alt-r       #xffea #xA5) ;; XK_Alt_R VK_RMENU
++  (define-xk xk-super-l     #xffeb nil) ;; XK_Super_L
++  (define-xk xk-super-r     #xffec nil) ;; XK_Super_R
++  (define-xk xk-hyper-l     #xffed nil) ;; XK_Hyper_L
++  (define-xk xk-hyper-r     #xffee nil) ;; XK_Hyper_R
++
++  ;; Latin 1
++  ;; For numbers and letters, MS-Windows does not define constant names.
++  ;; X11 defines distinct keysyms for lowercase and uppercase
++  ;; letters. We use only the uppercase ones. Events with lowercase
++  ;; letters are converted to uppercase.
++  (define-xk xk-space       #x0020 #x20) ;; XK_space VK_SPACE
++  (define-xk xk-0           #x0030 #x30) ;; XK_0
++  (define-xk xk-1           #x0031 #x31) ;; XK_1
++  (define-xk xk-2           #x0032 #x32) ;; XK_2
++  (define-xk xk-3           #x0033 #x33) ;; XK_3
++  (define-xk xk-4           #x0034 #x34) ;; XK_4
++  (define-xk xk-5           #x0035 #x35) ;; XK_5
++  (define-xk xk-6           #x0036 #x36) ;; XK_6
++  (define-xk xk-7           #x0037 #x37) ;; XK_7
++  (define-xk xk-8           #x0038 #x38) ;; XK_8
++  (define-xk xk-9           #x0039 #x39) ;; XK_9
++  (define-xk xk-a           #x0041 #x41) ;; XK_A
++  (define-xk xk-b           #x0042 #x42) ;; XK_B
++  (define-xk xk-c           #x0043 #x43) ;; XK_C
++  (define-xk xk-d           #x0044 #x44) ;; XK_D
++  (define-xk xk-e           #x0045 #x45) ;; XK_E
++  (define-xk xk-f           #x0046 #x46) ;; XK_F
++  (define-xk xk-g           #x0047 #x47) ;; XK_G
++  (define-xk xk-h           #x0048 #x48) ;; XK_H
++  (define-xk xk-i           #x0049 #x49) ;; XK_I
++  (define-xk xk-j           #x004A #x4A) ;; XK_J
++  (define-xk xk-k           #x004B #x4B) ;; XK_K
++  (define-xk xk-l           #x004C #x4C) ;; XK_L
++  (define-xk xk-m           #x004D #x4D) ;; XK_M
++  (define-xk xk-n           #x004E #x4E) ;; XK_N
++  (define-xk xk-o           #x004F #x4F) ;; XK_O
++  (define-xk xk-p           #x0050 #x50) ;; XK_P
++  (define-xk xk-q           #x0051 #x51) ;; XK_Q
++  (define-xk xk-r           #x0052 #x52) ;; XK_R
++  (define-xk xk-s           #x0053 #x53) ;; XK_S
++  (define-xk xk-t           #x0054 #x54) ;; XK_T
++  (define-xk xk-u           #x0055 #x55) ;; XK_U
++  (define-xk xk-v           #x0056 #x56) ;; XK_V
++  (define-xk xk-w           #x0057 #x57) ;; XK_W
++  (define-xk xk-x           #x0058 #x58) ;; XK_X
++  (define-xk xk-y           #x0059 #x59) ;; XK_Y
++  (define-xk xk-z           #x005A #x5A));; XK_Z
+ 
+ (defun llk-init ()
++  "Initialize low-level key events.
++Fills the `llk-keysyms' list, and binds the `low-level-key' event
++to the `llk-handle' function.  Resets the `llk-bindings' list.
++Besides calling this function, you need to set `enable-low-level-key-events'
++to a non-nil value"
+   (interactive)
++  (llk-define-keysyms)
+   (define-key special-event-map [low-level-key] 'llk-handle)
+-  (define-key special-event-map [low-level-modifier] 'llm-handle)
++  (setq llk-bindings nil))
+ 
+-  (setq llk-bindings nil)
+-  (setq llm-bindings nil)
++(defsubst event-is-key-press (event)
++  "Return the value of the IS-KEY-PRESS field of the EVENT, a low level key event."
++  (declare (side-effect-free t))
++  (if (consp event) (nth 1 event)))
+ 
+-  ;; (llm-bind 'tap 'shift 'delete-other-windows)
+-  ;; (llk-bind 'tap 'lctrl 'hyper)
+-  (setq enable-low-level-key-events t))
++(defsubst event-keysym (event)
++  "Return the value of the KEY field of the EVENT, a low level key event."
++  (declare (side-effect-free t))
++  (if (consp event) (nth 2 event)))
++
++(defsubst event-modifier (event)
++  "Return the value of the MODIFIER field of the EVENT, a low level key event."
++  (declare (side-effect-free t))
++  (if (consp event) (nth 3 event)))
++
++(defsubst event-time (event)
++  "Return the value of the TIME field of the EVENT, a low level key event."
++  (declare (side-effect-free t))
++  (if (consp event) (nth 4 event)))
+ 
+ ;; For example:
+-;; (llk-add-binding 'tap 'lshift 'delete-other-windows)
+-;; Can bind to a command, a function or the symbol 'hyper.
++;; Bind key tap to command
++;;    (llk-bind 'tap 'xk-shift-l 'delete-other-windows)
++;; Bind modifiry tap to command
++;;     (llk-bind 'tap 'shift 'delete-other-windows)
++;; Bind tap to hyper modifier
++;;      (llk-bind 'tap 'xk-shift-r (lambda ()
++;;                              (message "H-...")
++;;                              (setq unread-command-events
++;;                                    (append (event-apply-hyper-modifier nil) nil))))
++;; Can bind to a command or function
+ (defun llk-bind (action key function)
++  "Bind a command a function to a low level key event.
++The only action supported currently is `tap'. The key can be a keysym
++symbol, or a modifier symbol (shift, control, alt, meta, hyper, super).
++If there is no keysym symbol for a key, use the keysym number.  "
+   (push (list action key function) llk-bindings))
+ 
+-(defun llm-bind (action key function)
+-  (push (list action key function) llm-bindings))
+-
+-;; We store the last events here to test for multitap.
+-(defvar llk-events nil)
+-(defvar llm-events nil)
++;; We store the last events (key/modifier is-press timestamp) here to
++;; test for multitap.
++(defvar llk-events nil
++  "Internal variable for detecting taps.")
+ 
+-;; If positive, return key ('lshift, etc) else return nil.
++;; If positive, return key (xk-shift-l, etc) else return nil.
+ (defun llk-detect-n-tap (n timeout)
+-  ;; The physical-key event is like this:
+-  ;; (physical-key t lshift 90196265 #<frame>)
+-  ;; The second element is t for a key press, nil for a key release
+-  ;; The fourth element is the time in milliseconds
+-  ;; The fifth is the frame, we don't use it yet.
+-
+-  (let ((key (cl-third last-input-event)))
+-    (if (not (member key llk-tap-keys))
++  "Internal function to detect n-tap keys."
++  (let (key
++        (is-press (event-is-key-press last-input-event))
++        ;; convert number to keysym symbol
++        (keysym (cdr (assoc (event-keysym last-input-event) llk-keysyms)))
++        (timestamp (event-time last-input-event))
++        (modifier (event-modifier last-input-event)))
++
++    ;; if ehte is no symbol for this key, use its keysym number
++    (unless keysym (setq keysym (event-keysym last-input-event)))
++
++    ;; look in llk-tap-keys for the key, then the modifier
++    (if (member keysym llk-tap-keys)
++        (setq key keysym)
++      (if (member modifier llk-tap-keys)
++          (setq key modifier)))
++
++    (if (not key)
+         ;; Key not in tap list, clear history
+         (setq llk-events nil)
+       ;; Clear it also if the first element is from a different key
+       (and llk-events
+-           (not (equal (cl-third (car llk-events)) key))
++           (not (equal (car (car llk-events)) key))
+            (setq llk-events nil))
+-      (push last-input-event llk-events)
++      (push (list key is-press timestamp) llk-events)
+       ;; Only care about last 2xN events
+       (ntake (* 2 n) llk-events)
+       ;; If we have:
+@@ -63,79 +284,52 @@
+                             (list nil t nil t nil t nil t
+                                   nil t nil t nil t nil t))
+                      (mapcar 'cl-second llk-events))
+-           (< (- (cl-fourth (cl-first llk-events))
+-                 (cl-fourth (car (last llk-events))))
++           (< (- (cl-third (cl-first llk-events))
++                 (cl-third (car (last llk-events))))
+               timeout)
+            (progn
+              (setq llk-events nil)
+              key)))))
+ 
++(defun describe-low-level-key ()
++  "Wait for the next key press and describe the low level key event it
++generates."
++  (interactive)
++  (setq llk-describe-next-press t))
+ 
+-;; this function is a copy of llk-detect-n-tap, but for llm-events
+-(defun llm-detect-n-tap (n timeout)
+-  (let ((key (cl-third last-input-event)))
+-    (if (not (member key llk-tap-keys))
+-        (setq llm-events nil)
+-      (and llm-events
+-           (not (equal (cl-third (car llm-events)) key))
+-           (setq llm-events nil))
+-      (push last-input-event llm-events)
+-      (ntake (* 2 n) llm-events)
+-      (and (eq (* 2 n) (length llm-events))
+-           (cl-every 'eq
+-                     (ntake (* 2 n)
+-                            (list nil t nil t nil t nil t
+-                                  nil t nil t nil t nil t))
+-                     (mapcar 'cl-second llm-events))
+-           (< (- (cl-fourth (cl-first llm-events))
+-                 (cl-fourth (car (last llm-events))))
+-              timeout)
+-           (progn
+-             (setq llm-events nil)
+-             key)))))
++(defun llk-show-event-description ()
++  "Shoe information about the last low level key event."
++  (setq llk-describe-next-press nil)
++  (with-help-window (help-buffer)
++    (insert "\n")
++    (let* ((xk (event-keysym last-input-event))
++           (sym (assoc xk llk-keysyms)))
++      (insert (format "Keysym number: %d (#x%X),\n" xk xk))
++      (if sym
++          (insert (format "which corresponds to named key %s.\n\n" (cdr sym)))
++        (insert "which does not correspond to any known named key.\n\n"))
++      (if (event-modifier last-input-event)
++          (insert (format "This key corresponds to the %s modifier.\n\n"
++                          (event-modifier last-input-event)))
++        (insert "This key does not correspond to a modifier.\n\n"))
++      (insert "See the value of the `llk-keysyms' variable for a list of known keys.\n"))))
+ 
+ (defun llk-handle ()
++  "Internal function to handle low level key events."
+   (interactive)
+-
+-  (let ((tap-key (llk-detect-n-tap
+-                  llk-tap-count
+-                  llk-tap-timeout)))
+-    (when tap-key
+-      (let ((func (cl-third
+-                   (seq-find
+-                    (lambda (b)
+-                      (and (eq (cl-first b) 'tap)
+-                           (eq (cl-second b) tap-key)))
+-                    llk-bindings))))
+-        (cond
+-         ((commandp func) (call-interactively func))
+-         ((functionp func) (funcall func))
+-         ((eq 'hyper func)
+-          (message "H-...")
+-          (let ((r (read-event)))
+-            (setq unread-command-events
+-                  (list (event-apply-modifier
+-                         r 'hyper 24 "H-"))))))))))
+-
+-(defun llm-handle()
+-  (interactive)
+-
+-  (let ((tap-key (llm-detect-n-tap
+-                  llk-tap-count
+-                  llk-tap-timeout)))
+-    (when tap-key
+-      (let ((func (cl-third
+-                   (seq-find
+-                    (lambda (b)
+-                      (and (eq (cl-first b) 'tap)
+-                           (eq (cl-second b) tap-key)))
+-                    llm-bindings))))
+-        (cond
+-         ((commandp func) (call-interactively func))
+-         ((functionp func) (funcall func))
+-         ((eq 'hyper func)
+-          (message "H-...")
+-          (let ((r (read-event)))
+-            (setq unread-command-events
+-                  (list (event-apply-modifier
+-                         r 'hyper 24 "H-"))))))))))
++  (if (and (event-is-key-press last-input-event)
++           llk-describe-next-press)
++      (llk-show-event-description)
++    (let ((tap-key (llk-detect-n-tap
++                    llk-tap-count
++                    llk-tap-timeout)))
++      (when tap-key
++        (let ((func (cl-third
++                     (seq-find
++                      (lambda (b)
++                        (and (eq (cl-first b) 'tap)
++                             (eq (cl-second b) tap-key)))
++                      llk-bindings))))
++          (cond
++           ((commandp func) (call-interactively func))
++           ((functionp func) (funcall func))))))))
+diff --git a/src/gtkutil.c b/src/gtkutil.c
+index 081d975bad2..2430dd63674 100644
+--- a/src/gtkutil.c
++++ b/src/gtkutil.c
+@@ -6508,18 +6508,19 @@ xg_im_context_preedit_end (GtkIMContext *imc, gpointer user_data)
+   kbd_buffer_store_event (&inev);
+ }
+ 
++#ifndef HAVE_XINPUT2
+ static void
+ xg_maybe_send_low_level_key_event (struct frame *f,
+ 				   GdkEvent *xev)
+ {
+   GdkEventKey xkey = xev->key;
+   bool is_press;
+-  int keysym;
+   Lisp_Object key, modifier;
+   union buffered_input_event inev;
+ 
+-  if (!Venable_low_level_key_events)
++  if (NILP (Venable_low_level_key_events))
+     return;
++
+   switch (xev->type)
+     {
+     case GDK_KEY_PRESS:
+@@ -6532,80 +6533,27 @@ xg_maybe_send_low_level_key_event (struct frame *f,
+       return;
+     }
+ 
+-  keysym = xkey.keyval;
++  modifier = x_get_modifier_for_keycode (FRAME_OUTPUT_DATA (f)->display_info,
++					 xev->key.hardware_keycode);
+ 
+-  switch (keysym)
+-    {
+-    case GDK_KEY_Shift_L: key = Qlshift; break;
+-    case GDK_KEY_Shift_R: key = Qrshift; break;
+-    case GDK_KEY_Control_L: key = Qlctrl; break;
+-    case GDK_KEY_Control_R: key = Qrctrl; break;
+-    case GDK_KEY_Alt_L: key = Qlalt; break;
+-    case GDK_KEY_Alt_R: key = Qralt; break;
+-    default:
+-      key = Qnil;
+-    }
++  int keysym = xkey.keyval;
+ 
+-   switch (keysym)
+-    {
+-    case GDK_KEY_Shift_L:
+-    case GDK_KEY_Shift_R:
+-      modifier = Qshift;
+-      break;
+-    case GDK_KEY_Control_L:
+-    case GDK_KEY_Control_R:
+-      modifier = Vx_ctrl_keysym;
+-      if (NILP (modifier))
+-	modifier = Qctrl;
+-      break;
+-    case GDK_KEY_Alt_L:
+-    case GDK_KEY_Alt_R:
+-      modifier = Vx_meta_keysym;
+-      if (NILP (modifier))
+-	modifier = Qalt;
+-      break;
+-    case GDK_KEY_Meta_L:
+-    case GDK_KEY_Meta_R:
+-      modifier = Vx_meta_keysym;
+-      if (NILP (modifier))
+-	modifier = Qmeta;
+-      break;
+-    case GDK_KEY_Hyper_L:
+-    case GDK_KEY_Hyper_R:
+-      modifier = Vx_hyper_keysym;
+-      if (NILP (modifier))
+-	modifier = Qhyper;
+-      break;
+-    case GDK_KEY_Super_L:
+-    case GDK_KEY_Super_R:
+-      modifier = Vx_super_keysym;
+-      if (NILP (modifier))
+-	modifier = Qsuper;
+-      break;
+-    default:
+-      modifier = Qnil;
+-    }
++  if (keysym >= GDK_KEY_a && keysym <= GDK_KEY_z)
++    keysym -= GDK_KEY_a - GDK_KEY_A;
+ 
+-  if (!NILP (key))
+-    {
+-      EVENT_INIT (inev.ie);
+-      XSETFRAME (inev.ie.frame_or_window, f);
+-      inev.ie.kind = LOW_LEVEL_KEY_EVENT;
+-      inev.ie.timestamp = xkey.time;
+-      inev.ie.arg = list2 (is_press ? Qt : Qnil, key);
+-      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+-    }
++  if (!kbd_low_level_key_is_enabled (keysym, modifier))
++    return;
+ 
+-  if (!NILP (modifier))
+-    {
+-      EVENT_INIT (inev.ie);
+-      XSETFRAME (inev.ie.frame_or_window, f);
+-      inev.ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
+-      inev.ie.timestamp = xkey.time;
+-      inev.ie.arg = list2 (is_press ? Qt : Qnil, modifier);
+-      kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+-    }
++  key = make_fixnum (keysym);
++
++  EVENT_INIT (inev.ie);
++  XSETFRAME (inev.ie.frame_or_window, f);
++  inev.ie.kind = LOW_LEVEL_KEY_EVENT;
++  inev.ie.timestamp = xkey.time;
++  inev.ie.arg = list3 (is_press ? Qt : Qnil, key, modifier);
++  kbd_buffer_store_buffered_event (&inev, &xg_pending_quit_event);
+ }
++#endif
+ 
+ static bool
+ xg_widget_key_press_event_cb (GtkWidget *widget, GdkEvent *event,
+diff --git a/src/keyboard.c b/src/keyboard.c
+index 20c9cb1f28f..896743ae4f5 100644
+--- a/src/keyboard.c
++++ b/src/keyboard.c
+@@ -4302,7 +4302,6 @@ kbd_buffer_get_event (KBOARD **kbp,
+       case SELECT_WINDOW_EVENT:
+       case SLEEP_EVENT:
+       case LOW_LEVEL_KEY_EVENT:
+-      case LOW_LEVEL_MODIFIER_KEY_EVENT:
+         {
+           obj = make_lispy_event (&event->ie);
+           kbd_fetch_ptr = next_kbd_event (event);
+@@ -7265,18 +7264,10 @@ make_lispy_event (struct input_event *event)
+       return list2 (Qpreedit_text, event->arg);
+ 
+     case LOW_LEVEL_KEY_EVENT:
+-      return listn (5,
+-		    Qlow_level_key,
+-		    XCAR (event->arg), /* Press or release.  */
+-		    XCAR (XCDR (event->arg)), /* The key symbol.  */
+-		    make_fixnum (event->timestamp),
+-		    event->frame_or_window);
+-
+-    case LOW_LEVEL_MODIFIER_KEY_EVENT:
+-      return listn (5,
+-		    Qlow_level_modifier,
++      return listn (6, Qlow_level_key,
+ 		    XCAR (event->arg), /* Press or release.  */
+ 		    XCAR (XCDR (event->arg)), /* The key symbol.  */
++		    XCAR (XCDR (XCDR (event->arg))), /* The modifier.  */
+ 		    make_fixnum (event->timestamp),
+ 		    event->frame_or_window);
+ 
+@@ -7286,6 +7277,33 @@ make_lispy_event (struct input_event *event)
+     }
+ }
+ 
++bool
++kbd_low_level_key_is_enabled (int keysym, Lisp_Object modifier)
++{
++  if (Venable_low_level_key_events == Qt)
++    return true;
++
++  if (Venable_low_level_key_events == Qnil)
++    return false;
++
++  if (FIXNUMP (Venable_low_level_key_events))
++    return keysym == XFIXNUM (Venable_low_level_key_events);
++
++  if (Venable_low_level_key_events == Qmodifiers)
++    return modifier != Qnil;
++
++  for (Lisp_Object e = Venable_low_level_key_events; CONSP (e); e = XCDR (e))
++    {
++      Lisp_Object c = XCAR (e);
++      if (FIXNUMP (c) && XFIXNUM (c) == keysym)
++	return true;
++      if (c == Qmodifiers && modifier != Qnil)
++	return true;
++    }
++
++  return false;
++}
++
+ static Lisp_Object
+ make_lispy_movement (struct frame *frame, Lisp_Object bar_window, enum scroll_bar_part part,
+ 		     Lisp_Object x, Lisp_Object y, Time t)
+@@ -13438,19 +13456,28 @@ syms_of_keyboard (void)
+   DEFSYM (Qfile_notify, "file-notify");
+ #endif /* USE_FILE_NOTIFY */
+ 
++
++  DEFSYM (Qmodifiers, "modifiers");
++
+   DEFVAR_LISP ("enable-low-level-key-events", Venable_low_level_key_events,
+-	       doc: /* Enabled the recepcion of low level key events.
+-This includes 'low-level-key' and 'low-level-modifier' events.  */);
+-  Venable_low_level_key_events = false;
++	       doc: /* If non-nil, reception of low-level key events is enabled.
++
++The value configures the set of keys that are handled:
++
++If t, send events for all keys.
++
++If a number, send events for the corresponding keysym.  When calling
++'llk-init', a set of variables with the xk- prefix is initialized with
++the numeric values for keysyms.  This numbers are platform dependent.
++
++If a symbol, a predefined set of keys is selected.  The only currently
++valid symbol is 'modifiers.
++
++If a list of numbers and/or symbols, the corresponding keysyms and sets
++are selected.  */);
++  Venable_low_level_key_events = Qnil;
+ 
+   DEFSYM (Qlow_level_key, "low-level-key");
+-  DEFSYM (Qlow_level_modifier, "low-level-modifier");
+-  DEFSYM (Qlshift, "lshift");
+-  DEFSYM (Qrshift, "rshift");
+-  DEFSYM (Qlctrl, "lctrl");
+-  DEFSYM (Qrctrl, "rctrl");
+-  DEFSYM (Qlalt, "lalt");
+-  DEFSYM (Qralt, "ralt");
+ 
+   DEFSYM (Qtouch_end, "touch-end");
+   DEFSYM (Qsleep_event, "sleep-event");
+@@ -14555,10 +14582,6 @@ keys_of_keyboard (void)
+ 			    "ignore");
+   initial_define_lispy_key (Vspecial_event_map, "low-level-key",
+ 			    "ignore");
+-  initial_define_lispy_key (Vspecial_event_map, "low-level-modifier",
+-			    "ignore");
+-
+-
+ }
+ 
+ /* Mark the pointers in the kboard objects.
+diff --git a/src/keyboard.h b/src/keyboard.h
+index 6d90c87c5f7..e71db2f25b1 100644
+--- a/src/keyboard.h
++++ b/src/keyboard.h
+@@ -516,6 +516,7 @@ extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
+ extern Lisp_Object menu_item_eval_property (Lisp_Object);
+ extern bool kbd_buffer_events_waiting (void);
+ extern void add_user_signal (int, const char *);
++extern bool kbd_low_level_key_is_enabled (int, Lisp_Object);
+ 
+ extern int tty_read_avail_input (struct terminal *, struct input_event *);
+ extern struct timespec timer_check (void);
+diff --git a/src/pgtkterm.c b/src/pgtkterm.c
+index ff40f24ab37..48ac75c22d1 100644
+--- a/src/pgtkterm.c
++++ b/src/pgtkterm.c
+@@ -5230,35 +5230,52 @@ pgtk_enqueue_preedit (struct frame *f, Lisp_Object preedit)
+ }
+ 
+ static void
+-pgtk_maybe_send_low_level_key_event (GdkEvent *event)
++pgtk_maybe_send_low_level_key_event (struct frame *f, GdkEvent *event)
+ {
+-  if (!Venable_low_level_key_events)
++  GdkEventKey xkey = event->key;
++  bool is_press;
++  Lisp_Object key, modifier;
++  union buffered_input_event inev;
++
++  if (NILP (Venable_low_level_key_events))
+     return;
+ 
+-  Lisp_Object key;
+-  switch (event->key.keyval)
++  switch (event->type)
+     {
+-    case GDK_KEY_Shift_L: key = Qlshift; break;
+-    case GDK_KEY_Shift_R: key = Qrshift; break;
+-    case GDK_KEY_Control_L: key = Qlctrl; break;
+-    case GDK_KEY_Control_R: key = Qrctrl; break;
+-    case GDK_KEY_Alt_L: key = Qlalt; break;
+-    case GDK_KEY_Alt_R: key = Qralt; break;
++    case GDK_KEY_PRESS:
++      is_press = true;
++      break;
++    case GDK_KEY_RELEASE:
++      is_press = false;
++      break;
+     default:
+       return;
+     }
+-  bool keypress = event->key.type == GDK_KEY_PRESS;
+-  struct frame *f = pgtk_any_window_to_frame (event->key.window);
++
++  /* We don't support modifier identification on PGTK. We only can tell
++    if the key corresponds to a modifier or not, which is used for
++    filtering enabled keys with kbd_low_level_key_is_enabled.  */
++  modifier = event->key.is_modifier ? Qt : Qnil;
++
++  int keysym = xkey.keyval;
++
++  if (keysym >= GDK_KEY_a && keysym <= GDK_KEY_z)
++    keysym -= GDK_KEY_a - GDK_KEY_A;
++  if (!kbd_low_level_key_is_enabled (keysym, modifier))
++    return;
++
++  if (!f)
++    f = pgtk_any_window_to_frame (event->key.window);
+   if (!f)
+     return;
+ 
+-  union buffered_input_event inev;
++  key = make_fixnum (keysym);
+ 
+   EVENT_INIT (inev.ie);
+   XSETFRAME (inev.ie.frame_or_window, f);
+   inev.ie.kind = LOW_LEVEL_KEY_EVENT;
+   inev.ie.timestamp = event->key.time;
+-  inev.ie.arg = list2 (keypress ? Qt : Qnil, key);
++  inev.ie.arg = list3 (is_press ? Qt : Qnil, key, modifier);
+   evq_enqueue (&inev);
+ }
+ 
+@@ -5271,9 +5288,10 @@ key_press_event (GtkWidget *widget, GdkEvent *event, gpointer *user_data)
+   struct frame *f;
+   struct pgtk_display_info *dpyinfo;
+ 
+-  pgtk_maybe_send_low_level_key_event(event);
+-
+   f = pgtk_any_window_to_frame (gtk_widget_get_window (widget));
++
++  pgtk_maybe_send_low_level_key_event (f, event);
++
+   EVENT_INIT (inev.ie);
+   hlinfo = MOUSE_HL_INFO (f);
+   nbytes = 0;
+@@ -5517,7 +5535,7 @@ key_release_event (GtkWidget *widget,
+   GdkDisplay *display;
+   struct pgtk_display_info *dpyinfo;
+ 
+-  pgtk_maybe_send_low_level_key_event(event);
++  pgtk_maybe_send_low_level_key_event (NULL, event);
+ 
+   display = gtk_widget_get_display (widget);
+   dpyinfo = pgtk_display_info_for_display (display);
+diff --git a/src/termhooks.h b/src/termhooks.h
+index 723a9cd42f6..93d22b100f2 100644
+--- a/src/termhooks.h
++++ b/src/termhooks.h
+@@ -355,7 +355,6 @@ enum event_kind
+   , NOTIFICATION_EVENT
+ #endif /* HAVE_ANDROID */
+   , LOW_LEVEL_KEY_EVENT
+-  , LOW_LEVEL_MODIFIER_KEY_EVENT
+ };
+ 
+ /* Bit width of an enum event_kind tag at the start of structs and unions.  */
+diff --git a/src/w32fns.c b/src/w32fns.c
+index a79e5c329be..810f4230c74 100644
+--- a/src/w32fns.c
++++ b/src/w32fns.c
+@@ -4685,10 +4685,10 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+     case WM_KEYUP:
+     case WM_SYSKEYUP:
+       record_keyup (wParam, lParam);
+-      if (Venable_low_level_key_events)
++      if (!NILP (Venable_low_level_key_events))
+ 	{
+ 	  signal_user_input ();
+-	  my_post_msg( &wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam );
++	  my_post_msg (&wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam);
+ 	}
+       goto dflt;
+ 
+@@ -4716,10 +4716,10 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+       if (w32_use_fallback_wm_chars_method)
+ 	wParam = map_keypad_keys (wParam, (lParam & 0x1000000L) != 0);
+ 
+-      if (Venable_low_level_key_events)
++      if (!NILP (Venable_low_level_key_events))
+ 	{
+ 	  signal_user_input ();
+-	  my_post_msg( &wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam );
++	  my_post_msg (&wmsg, hwnd, WM_EMACS_LOW_LEVEL_KEY, wParam, lParam);
+ 	}
+ 
+       windows_translate = 0;
+diff --git a/src/w32term.c b/src/w32term.c
+index 31ce0049731..8d886471ba8 100644
+--- a/src/w32term.c
++++ b/src/w32term.c
+@@ -5285,19 +5285,9 @@ w32_read_socket (struct terminal *terminal,
+ 	      if (translated)
+ 		vk = LOWORD (translated);
+ 
+-	      Lisp_Object key = Qnil;
++	      Lisp_Object key = make_fixnum (vk);
+ 	      Lisp_Object modifier = Qnil;
+ 
+-	      switch (vk)
+-		{
+-		case VK_LSHIFT: key = Qlshift; break;
+-		case VK_RSHIFT: key = Qrshift; break;
+-		case VK_LCONTROL: key = Qlctrl; break;
+-		case VK_RCONTROL: key = Qrctrl; break;
+-		case VK_LMENU: key = Qlalt; break;
+-		case VK_RMENU: key = Qralt; break;
+-		}
+-
+ 	      switch (vk)
+ 		{
+ 		case VK_LSHIFT:
+@@ -5314,26 +5304,16 @@ w32_read_socket (struct terminal *terminal,
+ 		  break;
+ 		}
+ 
+-	      if (!NILP (key))
++	      if (kbd_low_level_key_is_enabled (vk, modifier))
+ 		{
+ 		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+ 		  inev.kind = LOW_LEVEL_KEY_EVENT;
+ 		  XSETFRAME (inev.frame_or_window, f);
+ 		  inev.timestamp = msg.msg.time;
+-		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, key);
++		  inev.arg = list3 (is_wm_keyup ? Qnil : Qt, key, modifier);
+ 		  kbd_buffer_store_event_hold (&inev, hold_quit);
+-
+ 		}
+ 
+-	      if (!NILP (modifier))
+-		{
+-		  f = w32_window_to_frame (dpyinfo, msg.msg.hwnd);
+-		  inev.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
+-		  XSETFRAME (inev.frame_or_window, f);
+-		  inev.timestamp = msg.msg.time;
+-		  inev.arg = list2 (is_wm_keyup ? Qnil : Qt, modifier);
+-		  kbd_buffer_store_event_hold (&inev, hold_quit);
+-		}
+ 	      inev.kind = NO_EVENT;
+ 
+ 	    }
+diff --git a/src/xterm.c b/src/xterm.c
+index 37aac9ac04e..3d4b05e1f1b 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -17825,9 +17825,60 @@ static struct x_display_info *XTread_socket_fake_io_error;
+ 
+ static struct x_display_info *next_noop_dpyinfo;
+ 
++Lisp_Object
++x_get_modifier_for_keycode (struct x_display_info *dpyinfo,
++			    int keycode)
++{
++#ifdef HAVE_XKB
++  if (dpyinfo->xkb_desc)
++    for (int mod = 0; mod < XkbNumModifiers; mod++)
++      {
++	int mask = (1 << mod);
++	if (dpyinfo->xkb_desc->map->modmap[keycode] & mask)
++	  {
++	    if (mask == ShiftMask)
++	      return Qshift;
++	    if (mask == ControlMask)
++	      return Qctrl;
++	    if (mask == dpyinfo->meta_mod_mask)
++	      return Qmeta;
++	    if (mask == dpyinfo->alt_mod_mask)
++	      return Qalt;
++	    if (mask == dpyinfo->super_mod_mask)
++	      return Qsuper;
++	    if (mask == dpyinfo->hyper_mod_mask)
++	      return Qhyper;
++	  }
++      }
++#endif
++  XModifierKeymap *map = dpyinfo->modmap;
++  if (map)
++    for (int mod = 0; mod < 8; mod++)
++      {
++	int mask = (1 << mod);
++        for (int key = 0; key < map->max_keypermod; key++)
++	  if (map->modifiermap[mod * map->max_keypermod + key] == keycode)
++	    {
++	      if (mask == ShiftMask)
++		return Qshift;
++	      if (mask == ControlMask)
++		return Qctrl;
++	      if (mask == dpyinfo->meta_mod_mask)
++		return Qmeta;
++	      if (mask == dpyinfo->alt_mod_mask)
++		return Qalt;
++	      if (mask == dpyinfo->super_mod_mask)
++		return Qsuper;
++	      if (mask == dpyinfo->hyper_mod_mask)
++		return Qhyper;
++	    }
++      }
++  return Qnil;
++}
++
+ static void
+ x_maybe_send_low_level_key_event (struct x_display_info *dpyinfo,
+-				  const XEvent *xev)
++				  const XEvent *xev, struct frame *f)
+ {
+   XKeyEvent xkey;
+   bool is_press;
+@@ -17835,7 +17886,7 @@ x_maybe_send_low_level_key_event (struct x_display_info *dpyinfo,
+   Lisp_Object key, modifier;
+   struct input_event ie;
+ 
+-  if (!Venable_low_level_key_events)
++  if (NILP (Venable_low_level_key_events))
+     return;
+ 
+   switch (xev->type)
+@@ -17883,83 +17934,30 @@ x_maybe_send_low_level_key_event (struct x_display_info *dpyinfo,
+       return;
+     }
+ 
+-  struct frame *f = x_any_window_to_frame (dpyinfo, xkey.window);
++  if (!f)
++    f = x_any_window_to_frame (dpyinfo, xkey.window);
+   if (!f)
+     return;
+ 
+   XLookupString (&xkey, NULL, 0, &keysym, NULL);
+ 
+-  switch (keysym)
+-    {
+-    case XK_Shift_L: key = Qlshift; break;
+-    case XK_Shift_R: key = Qrshift; break;
+-    case XK_Control_L: key = Qlctrl; break;
+-    case XK_Control_R: key = Qrctrl; break;
+-    case XK_Alt_L: key = Qlalt; break;
+-    case XK_Alt_R: key = Qralt; break;
+-    default:
+-      key = Qnil;
+-    }
++  modifier = x_get_modifier_for_keycode (dpyinfo, xkey.keycode);
+ 
+-   switch (keysym)
+-    {
+-    case XK_Shift_L:
+-    case XK_Shift_R:
+-      modifier = Qshift;
+-      break;
+-    case XK_Control_L:
+-    case XK_Control_R:
+-      modifier = Vx_ctrl_keysym;
+-      if (NILP (modifier))
+-	modifier = Qctrl;
+-      break;
+-    case XK_Alt_L:
+-    case XK_Alt_R:
+-      modifier = Vx_meta_keysym;
+-      if (NILP (modifier))
+-	modifier = Qalt;
+-      break;
+-    case XK_Meta_L:
+-    case XK_Meta_R:
+-      modifier = Vx_meta_keysym;
+-      if (NILP (modifier))
+-	modifier = Qmeta;
+-      break;
+-    case XK_Hyper_L:
+-    case XK_Hyper_R:
+-      modifier = Vx_hyper_keysym;
+-      if (NILP (modifier))
+-	modifier = Qhyper;
+-      break;
+-    case XK_Super_L:
+-    case XK_Super_R:
+-      modifier = Vx_super_keysym;
+-      if (NILP (modifier))
+-	modifier = Qsuper;
+-      break;
+-    default:
+-      modifier = Qnil;
+-    }
++  /* Convert lowercase latin letter to uppercase.  */
++  if (keysym >= XK_a && keysym <= XK_z)
++    keysym -= XK_a - XK_A;
+ 
+-  if (!NILP (key))
+-    {
+-      EVENT_INIT (ie);
+-      XSETFRAME (ie.frame_or_window, f);
+-      ie.kind = LOW_LEVEL_KEY_EVENT;
+-      ie.timestamp = xkey.time;
+-      ie.arg = list2 (is_press ? Qt : Qnil, key);
+-      kbd_buffer_store_event (&ie);
+-    }
++  if (!kbd_low_level_key_is_enabled (keysym, modifier))
++    return;
+ 
+-  if (!NILP (modifier))
+-    {
+-      EVENT_INIT (ie);
+-      XSETFRAME (ie.frame_or_window, f);
+-      ie.kind = LOW_LEVEL_MODIFIER_KEY_EVENT;
+-      ie.timestamp = xkey.time;
+-      ie.arg = list2 (is_press ? Qt : Qnil, key);
+-      kbd_buffer_store_event (&ie);
+-    }
++  key = make_fixnum (keysym);
++
++  EVENT_INIT (ie);
++  XSETFRAME (ie.frame_or_window, f);
++  ie.kind = LOW_LEVEL_KEY_EVENT;
++  ie.timestamp = xkey.time;
++  ie.arg = list3 (is_press ? Qt : Qnil, key, modifier);
++  kbd_buffer_store_event (&ie);
+ }
+ 
+ /* Filter events for the current X input method.
+@@ -20322,7 +20320,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+       goto OTHER;
+ 
+     case KeyPress:
+-      x_maybe_send_low_level_key_event (dpyinfo, event);
++      x_maybe_send_low_level_key_event (dpyinfo, event, any);
+       x_display_set_last_user_time (dpyinfo, event->xkey.time,
+ 				    event->xkey.send_event,
+ 				    true);
+@@ -20832,7 +20830,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ #endif
+ 
+     case KeyRelease:
+-      x_maybe_send_low_level_key_event (dpyinfo, event);
++      x_maybe_send_low_level_key_event (dpyinfo, event, any);
+ #ifdef HAVE_X_I18N
+       /* Don't dispatch this event since XtDispatchEvent calls
+          XFilterEvent, and two calls in a row may freeze the
+@@ -24097,7 +24095,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ 	      struct xi_device_t *device, *source;
+ 	      XKeyPressedEvent xkey;
+ 
+-	      x_maybe_send_low_level_key_event (dpyinfo, event);
++	      x_maybe_send_low_level_key_event (dpyinfo, event, any);
+ 
+ 	      coding = Qlatin_1;
+ 
+@@ -24715,7 +24713,7 @@ handle_one_xevent (struct x_display_info *dpyinfo,
+ #endif
+ 
+ 	  case XI_KeyRelease:
+-	    x_maybe_send_low_level_key_event (dpyinfo, event);
++	    x_maybe_send_low_level_key_event (dpyinfo, event, any);
+ 
+ #if defined HAVE_X_I18N || defined USE_GTK || defined USE_LUCID
+ 	    {
+diff --git a/src/xterm.h b/src/xterm.h
+index 199fcd2edf0..82b0e85eae1 100644
+--- a/src/xterm.h
++++ b/src/xterm.h
+@@ -1900,6 +1900,8 @@ extern void x_clear_under_internal_border (struct frame *f);
+ extern void tear_down_x_back_buffer (struct frame *f);
+ extern void initial_set_up_x_back_buffer (struct frame *f);
+ 
++extern Lisp_Object x_get_modifier_for_keycode (struct x_display_info *, int);
++
+ /* Defined in xfns.c.  */
+ extern void x_real_positions (struct frame *, int *, int *);
+ extern void x_change_tab_bar_height (struct frame *, int);
+-- 
+2.52.0
+
+From c371f017336b571d9f00884e98bc58da21a8b2f6 Mon Sep 17 00:00:00 2001
+From: Cecilio Pardo <cpardo@imayhem.com>
+Date: Mon, 2 Dec 2024 17:30:42 +0100
+Subject: [PATCH 3/5] Include a manual entry, and correct doc strings and
+ comments
+
+* doc/lispref/commands.texi: Added information about new event.
+* src/keyboard.c (syms_of_keyboard): Tweak docstring.
+
+FIXME: Old commit msg.
+
+* lisp/low-level-key.el (New file).
+(llk-bindings): User bindings for low level key events.
+(llk-tap-count): User option.
+(llk-tap-timeout): User option.
+(llk-tap-keys): User option.
+(llk-keysyms): List of available keysyms.
+(define-xk): Macro for defining keysyms.
+(llk-define-keysyms): Build llk-keysyms.
+(llk-init): Function to initialize low level key handling.
+(event-is-key-press): Get field from event.
+(event-keysym): Get field from event.
+(event-modifier): Get field from event.
+(event-time): Get field from event.
+(llk-bind): Function to create a binding.
+(llk-events): Event history for tap detection.
+(llk-detect-n-tap): Function to detect taps.
+(describe-low-level-key): Command to get information about a key.
+(llk-show-event-description): Show help buffer with information
+about an event.
+(llk-handle): Handler for key events.
+---
+ doc/lispref/commands.texi | 29 +++++++++++++++++++++++++
+ lisp/low-level-key.el     | 45 ++++++++++++++++++++++-----------------
+ src/keyboard.c            |  6 +++++-
+ 3 files changed, 60 insertions(+), 20 deletions(-)
+
+diff --git a/doc/lispref/commands.texi b/doc/lispref/commands.texi
+index 5a2e3eb1ec9..0cd8ce98ce9 100644
+--- a/doc/lispref/commands.texi
++++ b/doc/lispref/commands.texi
+@@ -2678,6 +2678,35 @@ which @code{1.0} is the width and height of the touchpad
+ respectively.  They are usually interpreted as being relative to the
+ size of the object beneath the gesture: image, window, etc.
+ 
++@cindex @code{low-level-key} event
++@item (low-level-key @var{is-key-press} @var{key} @var{modifier} @var{time} @var{frame})
++This event is sent on the physical press or release of keys, only on GUI
++systems, currently X, MS-Windows and PGTK.
++
++@var{is-key-press} is @code{t} for a key press, @code{nil} for a key release.
++@var{time} is the event's time in milliseconds, @var{frame} is the
++frame receiving it. @var{modifier} is @code{nil} if the key is not a
++modifier key, @code{t} if it is, but it is unknown which one, or one of
++@code{shift}, @code{control}, @code{meta}, @code{alt}, @code{super},
++@code{hyper}.
++
++@var{key}, an integer, identifies the key pressed or released.  This
++number is platform dependent, but there are variables for most keys that
++can be used in place of the numbers to identify them.  For example, the
++variable @code{xk-backspace} identifies the @key{backspace} key.
++
++The names are parallel to those for KeySyms on X, as defined in
++@file{xkeysymdef.h}.  For example, @code{XK_Shift_L} (the left shift
++key), corresponds to @code{xk-shift-l}.  The @file{xkeysymdef.h} file
++defines different KeySyms for capital and small versions of letters.
++For this event, only the capital version is used, with the variables
++@code{xk-a}, @code{xk-b}, etc.
++
++These variables are initialized by calling the function @code{llk-init}.
++This function also binds a handler to this event, which allows to detect
++double taps on keys (normally modifier keys) and bind commands or
++functions to be run.  See the function @code{llk-bind}.
++
+ @cindex @code{preedit-text} event
+ @item (preedit-text @var{arg})
+ This event is sent when a system input method tells Emacs to display
+diff --git a/lisp/low-level-key.el b/lisp/low-level-key.el
+index 85cdaaaf0f4..bc9311f82d0 100644
+--- a/lisp/low-level-key.el
++++ b/lisp/low-level-key.el
+@@ -1,26 +1,30 @@
+ ;;; -*- lexical-binding: t -*-
+ 
+ ;; The physical-key event is like this:
+-;; (physical-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
++;; (low-level-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
+ ;; IS-KEY-PRESS is t if the key has been pressed, nil if it has been released.
+ ;; KEY is the keysym number.
+-;; MODIFIER is the modifier associated with this key. It is nil if the key is
+-;; not a modifier. It can be one of the following symbols: shift, control, meta,
+-;; super, hyper, alt. It can also be t if the key is a modifier but it can't be
+-;; identified.
++;; MODIFIER is the modifier associated with this key.  It is nil if the key is
++;; not a modifier.  It can be one of the following symbols: shift, control, meta,
++;; super, hyper, alt.  It can also be t if the key is a modifier but it can't be
++;; identified, as in the PGTK backend.
+ ;; TIME is the timestamp in milliseconds of the event.
+ ;; FRAME is the frame where the event happened.
+ ;;
+ ;; After calling 'llk-init' and setting a non-nil value for
+ ;; 'enable-low-level-key-events', events begin to be handled by 'llk-handler',
+ ;; which tries to detect n-taps and calls the corresponding function.
++;;
++;; To implement other functionalities, you can replace llk-handler with
++;; your own function.
+ 
+ (require 'cl-lib)
+ 
+ ;; User options
+ 
+ (defvar llk-bindings nil
+-  "Bindings for low level key events (press/release/tap).
++  "List of bindings for low level key events (press/release/tap).
++
+ Use the `llk-bind' function to add bindings.  See its documentation for
+ a description of the binding information.")
+ 
+@@ -28,8 +32,7 @@ a description of the binding information.")
+   "Number or key press/releases to consider a tap.")
+ 
+ (defvar llk-tap-timeout 1000
+-  "Time in milliseconds between consecutive key presses/releases to
+-consider a tap.")
++  "Time (ms) between consecutive key presses/releases to consider a tap.")
+ 
+ (defvar llk-tap-keys
+   '(xk-shift-l xk-shift-r xk-control-l xk-control-r meta)
+@@ -37,6 +40,7 @@ consider a tap.")
+ 
+ (defvar llk-keysyms nil
+   "List of keysym numbers and their corresponding symbols.
++
+ Each element has the form (KEYSYM . SYMBOL).  The variable value for
+ each symbol is the keysym.  This list is initialized by `llk-init'.")
+ 
+@@ -53,7 +57,9 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
+      (push (cons ksym ',name) llk-keysyms)))
+ 
+ (defun llk-define-keysyms ()
+-  "Initialize the keysym list, `llk-keysyms'.  Called from `llk-init'."
++  "Initialize the keysym list, `llk-keysyms'.
++
++Called from `llk-init'."
+   (setq llk-keysyms nil)
+ 
+   ;; tty keys
+@@ -151,7 +157,7 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
+   ;; Latin 1
+   ;; For numbers and letters, MS-Windows does not define constant names.
+   ;; X11 defines distinct keysyms for lowercase and uppercase
+-  ;; letters. We use only the uppercase ones. Events with lowercase
++  ;; letters.  We use only the uppercase ones.  Events with lowercase
+   ;; letters are converted to uppercase.
+   (define-xk xk-space       #x0020 #x20) ;; XK_space VK_SPACE
+   (define-xk xk-0           #x0030 #x30) ;; XK_0
+@@ -192,11 +198,12 @@ each symbol is the keysym.  This list is initialized by `llk-init'.")
+   (define-xk xk-z           #x005A #x5A));; XK_Z
+ 
+ (defun llk-init ()
+-  "Initialize low-level key events.
++  "Initialize low level key events.
++
+ Fills the `llk-keysyms' list, and binds the `low-level-key' event
+ to the `llk-handle' function.  Resets the `llk-bindings' list.
+ Besides calling this function, you need to set `enable-low-level-key-events'
+-to a non-nil value"
++to a non-nil value."
+   (interactive)
+   (llk-define-keysyms)
+   (define-key special-event-map [low-level-key] 'llk-handle)
+@@ -225,7 +232,7 @@ to a non-nil value"
+ ;; For example:
+ ;; Bind key tap to command
+ ;;    (llk-bind 'tap 'xk-shift-l 'delete-other-windows)
+-;; Bind modifiry tap to command
++;; Bind modifier tap to command
+ ;;     (llk-bind 'tap 'shift 'delete-other-windows)
+ ;; Bind tap to hyper modifier
+ ;;      (llk-bind 'tap 'xk-shift-r (lambda ()
+@@ -234,10 +241,11 @@ to a non-nil value"
+ ;;                                    (append (event-apply-hyper-modifier nil) nil))))
+ ;; Can bind to a command or function
+ (defun llk-bind (action key function)
+-  "Bind a command a function to a low level key event.
+-The only action supported currently is `tap'. The key can be a keysym
++  "Bind a command or function to a low level key event.
++
++The only action supported currently is `tap'.  The key can be a keysym
+ symbol, or a modifier symbol (shift, control, alt, meta, hyper, super).
+-If there is no keysym symbol for a key, use the keysym number.  "
++If there is no keysym symbol for a key, use the keysym number."
+   (push (list action key function) llk-bindings))
+ 
+ ;; We store the last events (key/modifier is-press timestamp) here to
+@@ -292,13 +300,12 @@ If there is no keysym symbol for a key, use the keysym number.  "
+              key)))))
+ 
+ (defun describe-low-level-key ()
+-  "Wait for the next key press and describe the low level key event it
+-generates."
++  "Wait for key press and describe the low level key event it generates."
+   (interactive)
+   (setq llk-describe-next-press t))
+ 
+ (defun llk-show-event-description ()
+-  "Shoe information about the last low level key event."
++  "Show information about the last low level key event."
+   (setq llk-describe-next-press nil)
+   (with-help-window (help-buffer)
+     (insert "\n")
+diff --git a/src/keyboard.c b/src/keyboard.c
+index 896743ae4f5..8a1f02d8b7c 100644
+--- a/src/keyboard.c
++++ b/src/keyboard.c
+@@ -13468,7 +13468,11 @@ If t, send events for all keys.
+ 
+ If a number, send events for the corresponding keysym.  When calling
+ 'llk-init', a set of variables with the xk- prefix is initialized with
+-the numeric values for keysyms.  This numbers are platform dependent.
++the numeric values for keysyms.  Because this number are platform
++dependent, only the variables should be used to refer to a key.  For
++example, the 'xk-backspace' variable refer to the backspace key, with
++the numeric value 0xff08 on X, and the 0x08 on MS-Windows.  You can see
++all defined variables on the variable 'llk-keysyms'.
+ 
+ If a symbol, a predefined set of keys is selected.  The only currently
+ valid symbol is 'modifiers.
+-- 
+2.52.0
+
+From 5405d765922c7a77ace093da3688f0a2756d6df3 Mon Sep 17 00:00:00 2001
+From: Cecilio Pardo <cpardo@imayhem.com>
+Date: Mon, 2 Dec 2024 17:30:42 +0100
+Subject: [PATCH 4/5] low-level-key-event: Minor doc style improvement
+
+* doc/lispref/commands.texi (Misc Events): Improve style and clarify
+the dependence on `enable-low-level-key-events`.
+* src/keyboard.c (syms_of_keyboard): Fix markup.
+---
+ doc/lispref/commands.texi | 7 +++++--
+ src/keyboard.c            | 4 ++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/doc/lispref/commands.texi b/doc/lispref/commands.texi
+index 0cd8ce98ce9..d1862e70725 100644
+--- a/doc/lispref/commands.texi
++++ b/doc/lispref/commands.texi
+@@ -2681,11 +2681,14 @@ size of the object beneath the gesture: image, window, etc.
+ @cindex @code{low-level-key} event
+ @item (low-level-key @var{is-key-press} @var{key} @var{modifier} @var{time} @var{frame})
+ This event is sent on the physical press or release of keys, only on GUI
+-systems, currently X, MS-Windows and PGTK.
++systems, currently X, MS-Windows and PGTK, and only if the variable
++@code{enable-low-level-key-events} has a non-@code{nil} value.  See its
++documentation for the values it can take, that allow to filter which
++keys should generate this kind of event.
+ 
+ @var{is-key-press} is @code{t} for a key press, @code{nil} for a key release.
+ @var{time} is the event's time in milliseconds, @var{frame} is the
+-frame receiving it. @var{modifier} is @code{nil} if the key is not a
++frame receiving it.  @var{modifier} is @code{nil} if the key is not a
+ modifier key, @code{t} if it is, but it is unknown which one, or one of
+ @code{shift}, @code{control}, @code{meta}, @code{alt}, @code{super},
+ @code{hyper}.
+diff --git a/src/keyboard.c b/src/keyboard.c
+index 8a1f02d8b7c..326cdb0674d 100644
+--- a/src/keyboard.c
++++ b/src/keyboard.c
+@@ -13467,12 +13467,12 @@ The value configures the set of keys that are handled:
+ If t, send events for all keys.
+ 
+ If a number, send events for the corresponding keysym.  When calling
+-'llk-init', a set of variables with the xk- prefix is initialized with
++`llk-init', a set of variables with the xk- prefix is initialized with
+ the numeric values for keysyms.  Because this number are platform
+ dependent, only the variables should be used to refer to a key.  For
+ example, the 'xk-backspace' variable refer to the backspace key, with
+ the numeric value 0xff08 on X, and the 0x08 on MS-Windows.  You can see
+-all defined variables on the variable 'llk-keysyms'.
++all defined variables on the variable `llk-keysyms'.
+ 
+ If a symbol, a predefined set of keys is selected.  The only currently
+ valid symbol is 'modifiers.
+-- 
+2.52.0
+
+From 84fce6bfb8054b1cba04be43e0b84e1d2b78c819 Mon Sep 17 00:00:00 2001
+From: Cecilio Pardo <cpardo@imayhem.com>
+Date: Mon, 2 Dec 2024 17:30:42 +0100
+Subject: [PATCH 5/5] Go through normal keymaps
+
+In this new version I changed the way events are handled.
+Now llk-handle generates input events to be used with normal
+keymaps, instead of running a command. The function llk-bind
+activates event generation for a key and a combination of
+events press, release, double, triple.
+
+I also made changes following your notes, such as:
+
+- Clarification on the event's time, documentation of
+  keysyms variables moved, don't limit to GUI systems.
+- cl-defstruct for the event payload.
+- Format and naming conventions.
+- Default timeout to mouse double click timeout.
+
+You suggested to auto generate the keysym table, but we
+would still need a table to relate the Windows keys to the X
+equivalent.
+
+* doc/lispref/commands.texi (Misc Events): Adjust to new semantics.
+* src/keyboard.c (syms_of_keyboard): Adust docstring.
+
+FIXME: Old commit msg.
+
+* lisp/low-level-key.el (New file).
+(low-level-key): Struct with event data.
+(llk-bindings): User bindings for low level key events.
+(llk-tap-timeout): User option.
+(llk-keysyms): List of available keysyms.
+(llk--define-xk): Macro for defining keysyms.
+(llk--define-keysyms): Build llk-keysyms.
+(llk-bind): Function to create a binding.
+(llk--event-history-for-tap): Event history for tap detection.
+(llk--detect-n-tap): Function to detect taps.
+(describe-low-level-key): Command to get information about a key.
+(llk--describe): Show help buffer with information
+about an event.
+(llk-handle): Handler for key events.
+(llk--generate-event): Generate input event for key.
+(llk--generate-events): Generate input events for key.
+---
+ doc/lispref/commands.texi |  41 ++-
+ lisp/low-level-key.el     | 615 ++++++++++++++++++++------------------
+ src/keyboard.c            |   9 +-
+ 3 files changed, 342 insertions(+), 323 deletions(-)
+
+diff --git a/doc/lispref/commands.texi b/doc/lispref/commands.texi
+index d1862e70725..8a3cd72ab94 100644
+--- a/doc/lispref/commands.texi
++++ b/doc/lispref/commands.texi
+@@ -2680,35 +2680,28 @@ size of the object beneath the gesture: image, window, etc.
+ 
+ @cindex @code{low-level-key} event
+ @item (low-level-key @var{is-key-press} @var{key} @var{modifier} @var{time} @var{frame})
+-This event is sent on the physical press or release of keys, only on GUI
+-systems, currently X, MS-Windows and PGTK, and only if the variable
+-@code{enable-low-level-key-events} has a non-@code{nil} value.  See its
+-documentation for the values it can take, that allow to filter which
+-keys should generate this kind of event.
+-
+-@var{is-key-press} is @code{t} for a key press, @code{nil} for a key release.
+-@var{time} is the event's time in milliseconds, @var{frame} is the
+-frame receiving it.  @var{modifier} is @code{nil} if the key is not a
++This event is sent on the physical press or release of keys, only on
++systems where it is supported, currently X, MS-Windows and PGTK, and
++only if the variable @code{enable-low-level-key-events} has a
++non-@code{nil} value.  See its documentation for the values to use, that
++can activate the events for all or some keys.
++
++@var{is-key-press} is @code{t} for a key press, @code{nil} for a key
++release.  @var{time} is the event's time in milliseconds, as reported by
++the underlying platform, and should only be used to measure time
++intervals between events of this same kind.  @var{frame} is the frame
++receiving the event.  @var{modifier} is @code{nil} if the key is not a
+ modifier key, @code{t} if it is, but it is unknown which one, or one of
+ @code{shift}, @code{control}, @code{meta}, @code{alt}, @code{super},
+ @code{hyper}.
+ 
+ @var{key}, an integer, identifies the key pressed or released.  This
+-number is platform dependent, but there are variables for most keys that
+-can be used in place of the numbers to identify them.  For example, the
+-variable @code{xk-backspace} identifies the @key{backspace} key.
+-
+-The names are parallel to those for KeySyms on X, as defined in
+-@file{xkeysymdef.h}.  For example, @code{XK_Shift_L} (the left shift
+-key), corresponds to @code{xk-shift-l}.  The @file{xkeysymdef.h} file
+-defines different KeySyms for capital and small versions of letters.
+-For this event, only the capital version is used, with the variables
+-@code{xk-a}, @code{xk-b}, etc.
+-
+-These variables are initialized by calling the function @code{llk-init}.
+-This function also binds a handler to this event, which allows to detect
+-double taps on keys (normally modifier keys) and bind commands or
+-functions to be run.  See the function @code{llk-bind}.
++number is platform dependent.
++
++This is a special event (@pxref{Special Events}), ignored by
++default. Loading @file{low-level-key.el} sets a handler
++that can generate normal input events for key press, release and multi
++tap.  See the function @code{llk-bind}.
+ 
+ @cindex @code{preedit-text} event
+ @item (preedit-text @var{arg})
+diff --git a/lisp/low-level-key.el b/lisp/low-level-key.el
+index bc9311f82d0..8a8d912977d 100644
+--- a/lisp/low-level-key.el
++++ b/lisp/low-level-key.el
+@@ -1,26 +1,74 @@
+-;;; -*- lexical-binding: t -*-
+-
+-;; The physical-key event is like this:
+-;; (low-level-key IS-KEY-PRESS KEY MODIFIER TIME FRAME)
+-;; IS-KEY-PRESS is t if the key has been pressed, nil if it has been released.
+-;; KEY is the keysym number.
+-;; MODIFIER is the modifier associated with this key.  It is nil if the key is
+-;; not a modifier.  It can be one of the following symbols: shift, control, meta,
+-;; super, hyper, alt.  It can also be t if the key is a modifier but it can't be
+-;; identified, as in the PGTK backend.
+-;; TIME is the timestamp in milliseconds of the event.
+-;; FRAME is the frame where the event happened.
+-;;
+-;; After calling 'llk-init' and setting a non-nil value for
+-;; 'enable-low-level-key-events', events begin to be handled by 'llk-handler',
+-;; which tries to detect n-taps and calls the corresponding function.
++;;; low-level-key.el --- Handling of key press/release events    -*- lexical-binding: t -*-
++
++;; Copyright (C) 2025 Free Software Foundation, Inc.
++
++;; This file is part of GNU Emacs.
++
++;; GNU Emacs is free software: you can redistribute it and/or modify
++;; it under the terms of the GNU General Public License as published by
++;; the Free Software Foundation, either version 3 of the License, or
++;; (at your option) any later version.
++
++;; GNU Emacs is distributed in the hope that it will be useful,
++;; but WITHOUT ANY WARRANTY; without even the implied warranty of
++;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++;; GNU General Public License for more details.
++
++;; You should have received a copy of the GNU General Public License
++;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
++
++;;; Commentary:
++
++;; Emacs can send low-level key events, that correspond to key presses
++;; and releases. These events are by default disabled.
++
++;; When enabled by setting `enable-low-level-key-events' to a non-nil
++;; value, emacs will begin sending them, and they will be ignored as
++;; low-level-key is bound to `ignore' on `special-event-map'.
++
++;; This file sets a handler for them (`llk-handle') which generates
++;; input events for key presses, key releases and double and triple
++;; taps.  These events can be bound to commands on normal keymaps.
++
++;; Because generating these events for all keys would interfere with
++;; normal keyboard input, they must be activated individually by calling
++;; the function `llk-bind'.
++
++;; The low-level-key event payload is described by the 'low-level-key'
++;; struct.  Use 'cl-describe-type' to get more information about it.
+ ;;
+-;; To implement other functionalities, you can replace llk-handler with
+-;; your own function.
++;; After loading this file and setting a non-nil value for
++;; 'enable-low-level-key-events', events begin to be handled by
++;; 'llk-handle', which tries to detect n-taps, and creates input
++;; events. See 'llk-bind'.
++
++;; Code:
+ 
+ (require 'cl-lib)
+ 
+-;; User options
++(defvar llk-tap-timeout (let ((time (mouse-double-click-time)))
++                          (if (> time 0) time 800))
++  "Time in milliseconds between key presses/releases to consider a double tap.
++For triple taps, the time is twice this value.")
++
++(cl-defstruct (low-level-key (:type list))
++  "Structure for low level key events.
++Received as low-level-key on `special-event-map'."
++  (event-type nil :type symbol
++   :documentation "Type of event: low-level-key")
++  (is-key-press nil :type boolean
++   :documentation "t if the key has been pressed, nil if it has been released.")
++  (key nil :type integer
++   :documentation "The keysym number.")
++  (modifier nil :type symbol
++   :documentation "Modifier associated with this key.  It is nil if the key is
++not a modifier.  It can be one of the following symbols: shift, control, meta,
++super, hyper, alt.  It can also be t if the key is a modifier but it can't be
++identified, as in the PGTK backend.")
++  (time nil :type integer
++   :documentation "Timestamp in milliseconds of the event.")
++  (frame nil :type frame
++   :documentation "Frame where the event happened."))
+ 
+ (defvar llk-bindings nil
+   "List of bindings for low level key events (press/release/tap).
+@@ -28,315 +76,298 @@
+ Use the `llk-bind' function to add bindings.  See its documentation for
+ a description of the binding information.")
+ 
+-(defvar llk-tap-count 2
+-  "Number or key press/releases to consider a tap.")
++(defvar llk-keysyms nil
++  "List of keysyms and their names.
++Each element has the form (CODE . KEYSYM), where code is a NUMBER and
++KEYSYM a symbol, such as `xk-shift-l'")
+ 
+-(defvar llk-tap-timeout 1000
+-  "Time (ms) between consecutive key presses/releases to consider a tap.")
++;; TODO docstring.
++(defun llk-bind (key &rest events)
++  "Activates low level event generation for a key.
+ 
+-(defvar llk-tap-keys
+-  '(xk-shift-l xk-shift-r xk-control-l xk-control-r meta)
+-  "Keys that can generate taps.")
++KEY can be a number or a symbol.  The symbols `shift', `control',
++`meta', `super', `hyper', `alt' activate events for the corresponding
++modifier keys.  A number activates events for the corresponding KeySym.
+ 
+-(defvar llk-keysyms nil
+-  "List of keysym numbers and their corresponding symbols.
++EVENTS are symbols that activate one event. Possible values are `press',
++`release', `double' and `triple'.
++
++See `llk-keysyms' for a list of known values for KEY and their names.
++For each of those, there is a corresponding variable.  It is better to
++use the variables to specify keys, as numerical values are
++platform-dependent.  The names are parallel to those for KeySyms on X,
++as defined in `xkeysymdef.h'. For example, `XK_Shift_L' (the left shift
++key), corresponds to `xk-shift-l'.
++
++The `xkeysymdef.h' file defines different KeySyms for capital and small
++versions of latin letters.  For this event, only the capital version is
++used, with the variables `xk-a', `xk-b', etc.
++
++Low level key events must be enabled with the variable
++`enable-low-level-key-events'.
++
++Once a key is activated with this function, input events will be
++generated for them, and can be bound to commands using normal keymaps.
+ 
+-Each element has the form (KEYSYM . SYMBOL).  The variable value for
+-each symbol is the keysym.  This list is initialized by `llk-init'.")
++For example, activating the double tap for the left shift key:
+ 
+-(defvar llk-describe-next-press nil
+-  "Internal variable to mark that next key press should be described.")
++  (llk-bind xk-shift-l \\='double)
+ 
+-(defmacro define-xk (name x-keysym w32-keysym)
++will generate the event `double-xk-shift-l', than can be bound to a
++command with:
++
++  (keymap-global-set [double-xk-shift-l] COMMAND)
++
++Prefixes for events are `press-key-', `release-key-', `double-' and
++`triple-'.
++
++If you use a KeySym number that is not on `llk-keysyms', the events will
++use its numerical value."
++  (setq llk-bindings
++        (cl-delete-if (lambda (x) (eq (car x) key)) llk-bindings))
++  (push (append (list key) events) llk-bindings))
++
++;; We store the last events (key/modifier is-press timestamp) here to
++;; test for multitap.  This is not the use the low-level-key struct.
++(defvar llk--event-history-for-tap nil
++  "Internal variable for detecting taps.")
++
++(defun llk--detect-n-tap (n timeout)
++  "Internal function to detect n-tap keys."
++  ;; Only care about last 2xN events
++  (ntake (* 2 n) llk--event-history-for-tap)
++  ;; If we have:
++  ;; - Exactly 2 * n events.
++  ;; - down, up, down, up, ...
++  ;; - not two much time between first and last
++  (and (eq (* 2 n) (length llk--event-history-for-tap))
++       (cl-every #'eq
++                 (ntake (* 2 n)
++                        (list nil t nil t nil t nil t
++                              nil t nil t nil t nil t))
++                 (mapcar 'cl-second llk--event-history-for-tap))
++       (< (- (cl-third (cl-first llk--event-history-for-tap))
++             (cl-third (car (last llk--event-history-for-tap))))
++          timeout)
++       (progn (setq llk--event-history-for-tap nil) t)))
++
++(defun llk--generate-event (key event-type)
++  (when (numberp key)
++    (let ((sym (cdr (assoc key llk-keysyms))))
++      (when sym
++        (setq key sym))))
++  (push (intern (format "%s-%s" event-type key))
++                 unread-command-events))
++
++(defun llk--generate-events (key is-press binding timestamp)
++  (if is-press
++      (when (member 'press binding)
++        (llk--generate-event key 'press-key))
++    (when (member 'release binding)
++      (llk--generate-event key 'release-key)))
++
++  (let ((double (member 'double binding))
++        (triple (member 'triple binding)))
++    ;; a non-tap key clears the event history.
++    (if (or double triple)
++        (progn
++          ;; Clear the event history if it has events from another key.
++          (unless (equal (car (car llk--event-history-for-tap)) key)
++            (setq llk--event-history-for-tap nil))
++          (push (list key is-press timestamp) llk--event-history-for-tap)
++          (and double
++               (llk--detect-n-tap 2 llk-tap-timeout)
++               (llk--generate-event key 'double-key))
++          (and triple
++               (llk--detect-n-tap 3 (* 2 llk-tap-timeout))
++               (llk--generate-event key 'triple-key)))
++      ;; A non-tap key clears the event history.
++      (setq llk--event-history-for-tap nil))))
++
++(defun llk-handle ()
++  (interactive)
++  (let* ((key (low-level-key-key last-input-event))
++         (modifier (low-level-key-modifier last-input-event))
++         (timestamp (low-level-key-time last-input-event))
++         (is-press (low-level-key-is-key-press last-input-event))
++         (binding (assoc key llk-bindings))
++         (binding-modifier (assoc modifier llk-bindings)))
++    (if binding
++        (llk--generate-events key is-press binding timestamp)
++      (when binding-modifier
++        (llk--generate-events modifier is-press binding-modifier timestamp)))))
++
++(defmacro llk--define-xk (name x-keysym w32-keysym)
+   "Internal macro to define keysyms."
+   `(let ((ksym (pcase (window-system)
+-                 ('pgtk ,x-keysym)
+-                 ('x ,x-keysym)
++                 ((or 'pgtk 'x) ,x-keysym)
+                  ('w32 ,w32-keysym))))
+      (defconst ,name ksym "Constant for a keysym value.")
+      (push (cons ksym ',name) llk-keysyms)))
+ 
+-(defun llk-define-keysyms ()
+-  "Initialize the keysym list, `llk-keysyms'.
+-
+-Called from `llk-init'."
++(defun llk--define-keysyms ()
++  "Initialize the keysym list, `llk-keysyms'."
+   (setq llk-keysyms nil)
+ 
+   ;; tty keys
+-  (define-xk xk-backspace   #xff08 #x08) ;; XK_BackSpace VK_BACK
+-  (define-xk xk-tab         #xff09 #x09) ;; XK_Tab VK_TAB
+-  (define-xk xk-clear       #xff0b #x0C) ;; XK_Clear VK_CLEAR
+-  (define-xk xk-return      #xff0d #x0D) ;; XK_Return VK_RETURN
+-  (define-xk xk-pause       #xff13 #x13) ;; XK_Pause VK_PAUSE
+-  (define-xk xk-scroll-lock #xff14 #x91) ;; XK_Scroll_Lock VK_SCROLL
+-  (define-xk xk-escape      #xff1B #x1B) ;; XK_Escape VK_ESCAPE
+-  (define-xk xk-delete      #xffff #x2E) ;; XK_Delete VK_DELETE
++  (llk--define-xk xk-backspace   #xff08 #x08) ;; XK_BackSpace VK_BACK
++  (llk--define-xk xk-tab         #xff09 #x09) ;; XK_Tab VK_TAB
++  (llk--define-xk xk-clear       #xff0b #x0C) ;; XK_Clear VK_CLEAR
++  (llk--define-xk xk-return      #xff0d #x0D) ;; XK_Return VK_RETURN
++  (llk--define-xk xk-pause       #xff13 #x13) ;; XK_Pause VK_PAUSE
++  (llk--define-xk xk-scroll-lock #xff14 #x91) ;; XK_Scroll_Lock VK_SCROLL
++  (llk--define-xk xk-escape      #xff1B #x1B) ;; XK_Escape VK_ESCAPE
++  (llk--define-xk xk-delete      #xffff #x2E) ;; XK_Delete VK_DELETE
+ 
+   ;; Cursor control and motion
+-  (define-xk xk-home        #xff50 #x24) ;; XK_Home VK_HOME
+-  (define-xk xk-left        #xff51 #x25) ;; XK_Left VK_LEFT
+-  (define-xk xk-up          #xff52 #x26) ;; XK_Up VK_UP
+-  (define-xk xk-right       #xff53 #x27) ;; XK_Right VK_RIGHT
+-  (define-xk xk-down        #xff54 #x28) ;; XK_Down VK_DOWN
+-  (define-xk xk-page-up     #xff55 #x21) ;; XK_Page_Up VK_PRIOR
+-  (define-xk xk-page-down   #xff56 #x22) ;; XK_Page_Down VK_NEXT
+-  (define-xk xk-end         #xff57 #x23) ;; XK_End VK_END
+-  (define-xk xk-begin       #xff58 #x24) ;; XK_Begin VK_HOME
++  (llk--define-xk xk-home        #xff50 #x24) ;; XK_Home VK_HOME
++  (llk--define-xk xk-left        #xff51 #x25) ;; XK_Left VK_LEFT
++  (llk--define-xk xk-up          #xff52 #x26) ;; XK_Up VK_UP
++  (llk--define-xk xk-right       #xff53 #x27) ;; XK_Right VK_RIGHT
++  (llk--define-xk xk-down        #xff54 #x28) ;; XK_Down VK_DOWN
++  (llk--define-xk xk-page-up     #xff55 #x21) ;; XK_Page_Up VK_PRIOR
++  (llk--define-xk xk-page-down   #xff56 #x22) ;; XK_Page_Down VK_NEXT
++  (llk--define-xk xk-end         #xff57 #x23) ;; XK_End VK_END
++  (llk--define-xk xk-begin       #xff58 #x24) ;; XK_Begin VK_HOME
+ 
+   ;; Special Windows keyboard keys
+-  (define-xk xk-win-l       #xFF5B #x5B) ;; XK_Win_L VK_LWIN
+-  (define-xk xk-win-r       #xFF5C #x5C) ;; XK_Win_R VK_RWIN
+-  (define-xk xk-app         #xFF5D #x5D) ;; XK_App VK_APPS
++  (llk--define-xk xk-win-l       #xFF5B #x5B) ;; XK_Win_L VK_LWIN
++  (llk--define-xk xk-win-r       #xFF5C #x5C) ;; XK_Win_R VK_RWIN
++  (llk--define-xk xk-app         #xFF5D #x5D) ;; XK_App VK_APPS
+ 
+   ;; Misc functions
+-  (define-xk xk-select      #xff60 #x29) ;; XK_Select VK_SELECT
+-  (define-xk xk-print       #xff61 #x2A) ;; XK_Print VK_PRINT
+-  (define-xk xk-insert      #xff64 #x2D) ;; XK_Insert VK_INSERT
+-  (define-xk xk-num-lock    #xff7f #x90) ;; XK_Num_Lock VK_NUMLOCK
++  (llk--define-xk xk-select      #xff60 #x29) ;; XK_Select VK_SELECT
++  (llk--define-xk xk-print       #xff61 #x2A) ;; XK_Print VK_PRINT
++  (llk--define-xk xk-insert      #xff64 #x2D) ;; XK_Insert VK_INSERT
++  (llk--define-xk xk-num-lock    #xff7f #x90) ;; XK_Num_Lock VK_NUMLOCK
+ 
+   ;; Keypad
+   ;; TODO: Check values for MS-Windows
+-  (define-xk xk-kp-enter    #xff8d nil) ;; XK_KP_Enter ???
+-  (define-xk xk-kp-multiply #xffaa nil) ;; XK_KP_Multiply ???
+-  (define-xk xk-kp-add      #xffab nil) ;; XK_KP_Add ???
+-  (define-xk xk-kp-subtract #xffad nil) ;; XK_KP_Subtract ???
+-  (define-xk xk-kp-decimal  #xffae nil) ;; XK_KP_Decimal ???
+-  (define-xk xk-kp-divide   #xffaf nil) ;; XK_KP_Divide ???
+-  (define-xk xk-kp-0        #xffb0 #x60) ;; XK_KP_0 VK_NUMPAD0
+-  (define-xk xk-kp-1        #xffb1 #x61) ;; XK_KP_1 VK_NUMPAD1
+-  (define-xk xk-kp-2        #xffb2 #x62) ;; XK_KP_2 VK_NUMPAD2
+-  (define-xk xk-kp-3        #xffb3 #x63) ;; XK_KP_3 VK_NUMPAD3
+-  (define-xk xk-kp-4        #xffb4 #x64) ;; XK_KP_4 VK_NUMPAD4
+-  (define-xk xk-kp-5        #xffb5 #x65) ;; XK_KP_5 VK_NUMPAD5
+-  (define-xk xk-kp-6        #xffb6 #x66) ;; XK_KP_6 VK_NUMPAD6
+-  (define-xk xk-kp-7        #xffb7 #x67) ;; XK_KP_7 VK_NUMPAD7
+-  (define-xk xk-kp-8        #xffb8 #x68) ;; XK_KP_8 VK_NUMPAD8
+-  (define-xk xk-kp-9        #xffb9 #x69) ;; XK_KP_9 VK_NUMPAD9
++  (llk--define-xk xk-kp-enter    #xff8d nil)  ;; XK_KP_Enter ???
++  (llk--define-xk xk-kp-multiply #xffaa nil)  ;; XK_KP_Multiply ???
++  (llk--define-xk xk-kp-add      #xffab nil)  ;; XK_KP_Add ???
++  (llk--define-xk xk-kp-subtract #xffad nil)  ;; XK_KP_Subtract ???
++  (llk--define-xk xk-kp-decimal  #xffae nil)  ;; XK_KP_Decimal ???
++  (llk--define-xk xk-kp-divide   #xffaf nil)  ;; XK_KP_Divide ???
++  (llk--define-xk xk-kp-0        #xffb0 #x60) ;; XK_KP_0 VK_NUMPAD0
++  (llk--define-xk xk-kp-1        #xffb1 #x61) ;; XK_KP_1 VK_NUMPAD1
++  (llk--define-xk xk-kp-2        #xffb2 #x62) ;; XK_KP_2 VK_NUMPAD2
++  (llk--define-xk xk-kp-3        #xffb3 #x63) ;; XK_KP_3 VK_NUMPAD3
++  (llk--define-xk xk-kp-4        #xffb4 #x64) ;; XK_KP_4 VK_NUMPAD4
++  (llk--define-xk xk-kp-5        #xffb5 #x65) ;; XK_KP_5 VK_NUMPAD5
++  (llk--define-xk xk-kp-6        #xffb6 #x66) ;; XK_KP_6 VK_NUMPAD6
++  (llk--define-xk xk-kp-7        #xffb7 #x67) ;; XK_KP_7 VK_NUMPAD7
++  (llk--define-xk xk-kp-8        #xffb8 #x68) ;; XK_KP_8 VK_NUMPAD8
++  (llk--define-xk xk-kp-9        #xffb9 #x69) ;; XK_KP_9 VK_NUMPAD9
+ 
+   ;; Function keys
+-  (define-xk xk-f1          #xffbe #x70) ;; XK_F1 VK_F1
+-  (define-xk xk-f2          #xffbf #x71) ;; XK_F2 VK_F2
+-  (define-xk xk-f3          #xffc0 #x72) ;; XK_F3 VK_F3
+-  (define-xk xk-f4          #xffc1 #x73) ;; XK_F4 VK_F4
+-  (define-xk xk-f5          #xffc2 #x74) ;; XK_F5 VK_F5
+-  (define-xk xk-f6          #xffc3 #x75) ;; XK_F6 VK_F6
+-  (define-xk xk-f7          #xffc4 #x76) ;; XK_F7 VK_F7
+-  (define-xk xk-f8          #xffc5 #x77) ;; XK_F8 VK_F8
+-  (define-xk xk-f9          #xffc6 #x78) ;; XK_F9 VK_F9
+-  (define-xk xk-f10         #xffc7 #x79) ;; XK_F10 VK_F10
+-  (define-xk xk-f11         #xffc8 #x7A) ;; XK_F11 VK_F11
+-  (define-xk xk-f12         #xffc9 #x7B) ;; XK_F12 VK_F12
+-  (define-xk xk-f13         #xffca #x7C) ;; XK_F13 VK_F13
+-  (define-xk xk-f14         #xffcb #x7D) ;; XK_F14 VK_F14
+-  (define-xk xk-f15         #xffcc #x7E) ;; XK_F15 VK_F15
+-  (define-xk xk-f16         #xffcd #x7F) ;; XK_F16 VK_F16
+-  (define-xk xk-f17         #xffce #x80) ;; XK_F17 VK_F17
+-  (define-xk xk-f18         #xffcf #x81) ;; XK_F18 VK_F18
+-  (define-xk xk-f19         #xffd0 #x82) ;; XK_F19 VK_F19
+-  (define-xk xk-f20         #xffd1 #x83) ;; XK_F20 VK_F20
+-  (define-xk xk-f21         #xffd2 #x84) ;; XK_F21 VK_F21
+-  (define-xk xk-f22         #xffd3 #x85) ;; XK_F22 VK_F22
+-  (define-xk xk-f23         #xffd4 #x86) ;; XK_F23 VK_F23
+-  (define-xk xk-f24         #xffd5 #x87) ;; XK_F24 VK_F24
++  (llk--define-xk xk-f1          #xffbe #x70) ;; XK_F1 VK_F1
++  (llk--define-xk xk-f2          #xffbf #x71) ;; XK_F2 VK_F2
++  (llk--define-xk xk-f3          #xffc0 #x72) ;; XK_F3 VK_F3
++  (llk--define-xk xk-f4          #xffc1 #x73) ;; XK_F4 VK_F4
++  (llk--define-xk xk-f5          #xffc2 #x74) ;; XK_F5 VK_F5
++  (llk--define-xk xk-f6          #xffc3 #x75) ;; XK_F6 VK_F6
++  (llk--define-xk xk-f7          #xffc4 #x76) ;; XK_F7 VK_F7
++  (llk--define-xk xk-f8          #xffc5 #x77) ;; XK_F8 VK_F8
++  (llk--define-xk xk-f9          #xffc6 #x78) ;; XK_F9 VK_F9
++  (llk--define-xk xk-f10         #xffc7 #x79) ;; XK_F10 VK_F10
++  (llk--define-xk xk-f11         #xffc8 #x7A) ;; XK_F11 VK_F11
++  (llk--define-xk xk-f12         #xffc9 #x7B) ;; XK_F12 VK_F12
++  (llk--define-xk xk-f13         #xffca #x7C) ;; XK_F13 VK_F13
++  (llk--define-xk xk-f14         #xffcb #x7D) ;; XK_F14 VK_F14
++  (llk--define-xk xk-f15         #xffcc #x7E) ;; XK_F15 VK_F15
++  (llk--define-xk xk-f16         #xffcd #x7F) ;; XK_F16 VK_F16
++  (llk--define-xk xk-f17         #xffce #x80) ;; XK_F17 VK_F17
++  (llk--define-xk xk-f18         #xffcf #x81) ;; XK_F18 VK_F18
++  (llk--define-xk xk-f19         #xffd0 #x82) ;; XK_F19 VK_F19
++  (llk--define-xk xk-f20         #xffd1 #x83) ;; XK_F20 VK_F20
++  (llk--define-xk xk-f21         #xffd2 #x84) ;; XK_F21 VK_F21
++  (llk--define-xk xk-f22         #xffd3 #x85) ;; XK_F22 VK_F22
++  (llk--define-xk xk-f23         #xffd4 #x86) ;; XK_F23 VK_F23
++  (llk--define-xk xk-f24         #xffd5 #x87) ;; XK_F24 VK_F24
+ 
+   ;; Modifier keys
+-  (define-xk xk-shift-l     #xffe1 #xA0) ;; XK_Shift_L VK_LSHIFT
+-  (define-xk xk-shift-r     #xffe2 #xA1) ;; XK_Shift_R VK_RSHIFT
+-  (define-xk xk-control-l   #xffe3 #xA2) ;; XK_Control_L VK_LCONTROL
+-  (define-xk xk-control-r   #xffe4 #xA3) ;; XK_Control_R VK_RCONTROL
+-  (define-xk xk-caps-lock   #xffe5 #x14) ;; XK_Caps_Lock VK_CAPITAL
+-  (define-xk xk-metal-l     #xffe7 nil) ;; XK_Meta_L
+-  (define-xk xk-metal-t     #xffee nil) ;; XK_Meta_R
+-  (define-xk xk-alt-l       #xffe9 #xA4) ;; XK_Alt_L VK_LMENU
+-  (define-xk xk-alt-r       #xffea #xA5) ;; XK_Alt_R VK_RMENU
+-  (define-xk xk-super-l     #xffeb nil) ;; XK_Super_L
+-  (define-xk xk-super-r     #xffec nil) ;; XK_Super_R
+-  (define-xk xk-hyper-l     #xffed nil) ;; XK_Hyper_L
+-  (define-xk xk-hyper-r     #xffee nil) ;; XK_Hyper_R
++  (llk--define-xk xk-shift-l     #xffe1 #xA0) ;; XK_Shift_L VK_LSHIFT
++  (llk--define-xk xk-shift-r     #xffe2 #xA1) ;; XK_Shift_R VK_RSHIFT
++  (llk--define-xk xk-control-l   #xffe3 #xA2) ;; XK_Control_L VK_LCONTROL
++  (llk--define-xk xk-control-r   #xffe4 #xA3) ;; XK_Control_R VK_RCONTROL
++  (llk--define-xk xk-caps-lock   #xffe5 #x14) ;; XK_Caps_Lock VK_CAPITAL
++  (llk--define-xk xk-meta-l      #xffe7 nil)  ;; XK_Meta_L
++  (llk--define-xk xk-meta-r      #xffee nil)  ;; XK_Meta_R
++  (llk--define-xk xk-alt-l       #xffe9 #xA4) ;; XK_Alt_L VK_LMENU
++  (llk--define-xk xk-alt-r       #xffea #xA5) ;; XK_Alt_R VK_RMENU
++  (llk--define-xk xk-super-l     #xffeb nil)  ;; XK_Super_L
++  (llk--define-xk xk-super-r     #xffec nil)  ;; XK_Super_R
++  (llk--define-xk xk-hyper-l     #xffed nil)  ;; XK_Hyper_L
++  (llk--define-xk xk-hyper-r     #xffee nil)  ;; XK_Hyper_R
+ 
+   ;; Latin 1
+   ;; For numbers and letters, MS-Windows does not define constant names.
+   ;; X11 defines distinct keysyms for lowercase and uppercase
+   ;; letters.  We use only the uppercase ones.  Events with lowercase
+   ;; letters are converted to uppercase.
+-  (define-xk xk-space       #x0020 #x20) ;; XK_space VK_SPACE
+-  (define-xk xk-0           #x0030 #x30) ;; XK_0
+-  (define-xk xk-1           #x0031 #x31) ;; XK_1
+-  (define-xk xk-2           #x0032 #x32) ;; XK_2
+-  (define-xk xk-3           #x0033 #x33) ;; XK_3
+-  (define-xk xk-4           #x0034 #x34) ;; XK_4
+-  (define-xk xk-5           #x0035 #x35) ;; XK_5
+-  (define-xk xk-6           #x0036 #x36) ;; XK_6
+-  (define-xk xk-7           #x0037 #x37) ;; XK_7
+-  (define-xk xk-8           #x0038 #x38) ;; XK_8
+-  (define-xk xk-9           #x0039 #x39) ;; XK_9
+-  (define-xk xk-a           #x0041 #x41) ;; XK_A
+-  (define-xk xk-b           #x0042 #x42) ;; XK_B
+-  (define-xk xk-c           #x0043 #x43) ;; XK_C
+-  (define-xk xk-d           #x0044 #x44) ;; XK_D
+-  (define-xk xk-e           #x0045 #x45) ;; XK_E
+-  (define-xk xk-f           #x0046 #x46) ;; XK_F
+-  (define-xk xk-g           #x0047 #x47) ;; XK_G
+-  (define-xk xk-h           #x0048 #x48) ;; XK_H
+-  (define-xk xk-i           #x0049 #x49) ;; XK_I
+-  (define-xk xk-j           #x004A #x4A) ;; XK_J
+-  (define-xk xk-k           #x004B #x4B) ;; XK_K
+-  (define-xk xk-l           #x004C #x4C) ;; XK_L
+-  (define-xk xk-m           #x004D #x4D) ;; XK_M
+-  (define-xk xk-n           #x004E #x4E) ;; XK_N
+-  (define-xk xk-o           #x004F #x4F) ;; XK_O
+-  (define-xk xk-p           #x0050 #x50) ;; XK_P
+-  (define-xk xk-q           #x0051 #x51) ;; XK_Q
+-  (define-xk xk-r           #x0052 #x52) ;; XK_R
+-  (define-xk xk-s           #x0053 #x53) ;; XK_S
+-  (define-xk xk-t           #x0054 #x54) ;; XK_T
+-  (define-xk xk-u           #x0055 #x55) ;; XK_U
+-  (define-xk xk-v           #x0056 #x56) ;; XK_V
+-  (define-xk xk-w           #x0057 #x57) ;; XK_W
+-  (define-xk xk-x           #x0058 #x58) ;; XK_X
+-  (define-xk xk-y           #x0059 #x59) ;; XK_Y
+-  (define-xk xk-z           #x005A #x5A));; XK_Z
+-
+-(defun llk-init ()
+-  "Initialize low level key events.
+-
+-Fills the `llk-keysyms' list, and binds the `low-level-key' event
+-to the `llk-handle' function.  Resets the `llk-bindings' list.
+-Besides calling this function, you need to set `enable-low-level-key-events'
+-to a non-nil value."
+-  (interactive)
+-  (llk-define-keysyms)
+-  (define-key special-event-map [low-level-key] 'llk-handle)
+-  (setq llk-bindings nil))
+-
+-(defsubst event-is-key-press (event)
+-  "Return the value of the IS-KEY-PRESS field of the EVENT, a low level key event."
+-  (declare (side-effect-free t))
+-  (if (consp event) (nth 1 event)))
+-
+-(defsubst event-keysym (event)
+-  "Return the value of the KEY field of the EVENT, a low level key event."
+-  (declare (side-effect-free t))
+-  (if (consp event) (nth 2 event)))
+-
+-(defsubst event-modifier (event)
+-  "Return the value of the MODIFIER field of the EVENT, a low level key event."
+-  (declare (side-effect-free t))
+-  (if (consp event) (nth 3 event)))
+-
+-(defsubst event-time (event)
+-  "Return the value of the TIME field of the EVENT, a low level key event."
+-  (declare (side-effect-free t))
+-  (if (consp event) (nth 4 event)))
+-
+-;; For example:
+-;; Bind key tap to command
+-;;    (llk-bind 'tap 'xk-shift-l 'delete-other-windows)
+-;; Bind modifier tap to command
+-;;     (llk-bind 'tap 'shift 'delete-other-windows)
+-;; Bind tap to hyper modifier
+-;;      (llk-bind 'tap 'xk-shift-r (lambda ()
+-;;                              (message "H-...")
+-;;                              (setq unread-command-events
+-;;                                    (append (event-apply-hyper-modifier nil) nil))))
+-;; Can bind to a command or function
+-(defun llk-bind (action key function)
+-  "Bind a command or function to a low level key event.
+-
+-The only action supported currently is `tap'.  The key can be a keysym
+-symbol, or a modifier symbol (shift, control, alt, meta, hyper, super).
+-If there is no keysym symbol for a key, use the keysym number."
+-  (push (list action key function) llk-bindings))
+-
+-;; We store the last events (key/modifier is-press timestamp) here to
+-;; test for multitap.
+-(defvar llk-events nil
+-  "Internal variable for detecting taps.")
+-
+-;; If positive, return key (xk-shift-l, etc) else return nil.
+-(defun llk-detect-n-tap (n timeout)
+-  "Internal function to detect n-tap keys."
+-  (let (key
+-        (is-press (event-is-key-press last-input-event))
+-        ;; convert number to keysym symbol
+-        (keysym (cdr (assoc (event-keysym last-input-event) llk-keysyms)))
+-        (timestamp (event-time last-input-event))
+-        (modifier (event-modifier last-input-event)))
+-
+-    ;; if ehte is no symbol for this key, use its keysym number
+-    (unless keysym (setq keysym (event-keysym last-input-event)))
+-
+-    ;; look in llk-tap-keys for the key, then the modifier
+-    (if (member keysym llk-tap-keys)
+-        (setq key keysym)
+-      (if (member modifier llk-tap-keys)
+-          (setq key modifier)))
+-
+-    (if (not key)
+-        ;; Key not in tap list, clear history
+-        (setq llk-events nil)
+-      ;; Clear it also if the first element is from a different key
+-      (and llk-events
+-           (not (equal (car (car llk-events)) key))
+-           (setq llk-events nil))
+-      (push (list key is-press timestamp) llk-events)
+-      ;; Only care about last 2xN events
+-      (ntake (* 2 n) llk-events)
+-      ;; If we have:
+-      ;; - Exactly 2 * n events.
+-      ;; - down, up, down, up, ...
+-      ;; - not two much time between first and last
+-      (and (eq (* 2 n) (length llk-events))
+-           (cl-every 'eq
+-                     (ntake (* 2 n)
+-                            (list nil t nil t nil t nil t
+-                                  nil t nil t nil t nil t))
+-                     (mapcar 'cl-second llk-events))
+-           (< (- (cl-third (cl-first llk-events))
+-                 (cl-third (car (last llk-events))))
+-              timeout)
+-           (progn
+-             (setq llk-events nil)
+-             key)))))
++  (llk--define-xk xk-space       #x0020 #x20) ;; XK_space VK_SPACE
++  (llk--define-xk xk-0           #x0030 #x30) ;; XK_0
++  (llk--define-xk xk-1           #x0031 #x31) ;; XK_1
++  (llk--define-xk xk-2           #x0032 #x32) ;; XK_2
++  (llk--define-xk xk-3           #x0033 #x33) ;; XK_3
++  (llk--define-xk xk-4           #x0034 #x34) ;; XK_4
++  (llk--define-xk xk-5           #x0035 #x35) ;; XK_5
++  (llk--define-xk xk-6           #x0036 #x36) ;; XK_6
++  (llk--define-xk xk-7           #x0037 #x37) ;; XK_7
++  (llk--define-xk xk-8           #x0038 #x38) ;; XK_8
++  (llk--define-xk xk-9           #x0039 #x39) ;; XK_9
++  (llk--define-xk xk-a           #x0041 #x41) ;; XK_A
++  (llk--define-xk xk-b           #x0042 #x42) ;; XK_B
++  (llk--define-xk xk-c           #x0043 #x43) ;; XK_C
++  (llk--define-xk xk-d           #x0044 #x44) ;; XK_D
++  (llk--define-xk xk-e           #x0045 #x45) ;; XK_E
++  (llk--define-xk xk-f           #x0046 #x46) ;; XK_F
++  (llk--define-xk xk-g           #x0047 #x47) ;; XK_G
++  (llk--define-xk xk-h           #x0048 #x48) ;; XK_H
++  (llk--define-xk xk-i           #x0049 #x49) ;; XK_I
++  (llk--define-xk xk-j           #x004A #x4A) ;; XK_J
++  (llk--define-xk xk-k           #x004B #x4B) ;; XK_K
++  (llk--define-xk xk-l           #x004C #x4C) ;; XK_L
++  (llk--define-xk xk-m           #x004D #x4D) ;; XK_M
++  (llk--define-xk xk-n           #x004E #x4E) ;; XK_N
++  (llk--define-xk xk-o           #x004F #x4F) ;; XK_O
++  (llk--define-xk xk-p           #x0050 #x50) ;; XK_P
++  (llk--define-xk xk-q           #x0051 #x51) ;; XK_Q
++  (llk--define-xk xk-r           #x0052 #x52) ;; XK_R
++  (llk--define-xk xk-s           #x0053 #x53) ;; XK_S
++  (llk--define-xk xk-t           #x0054 #x54) ;; XK_T
++  (llk--define-xk xk-u           #x0055 #x55) ;; XK_U
++  (llk--define-xk xk-v           #x0056 #x56) ;; XK_V
++  (llk--define-xk xk-w           #x0057 #x57) ;; XK_W
++  (llk--define-xk xk-x           #x0058 #x58) ;; XK_X
++  (llk--define-xk xk-y           #x0059 #x59) ;; XK_Y
++  (llk--define-xk xk-z           #x005A #x5A));; XK_Z
+ 
+ (defun describe-low-level-key ()
+-  "Wait for key press and describe the low level key event it generates."
++  "Wait for key press and describe the low-level key event it generates."
+   (interactive)
+-  (setq llk-describe-next-press t))
+-
+-(defun llk-show-event-description ()
+-  "Show information about the last low level key event."
+-  (setq llk-describe-next-press nil)
+-  (with-help-window (help-buffer)
+-    (insert "\n")
+-    (let* ((xk (event-keysym last-input-event))
+-           (sym (assoc xk llk-keysyms)))
+-      (insert (format "Keysym number: %d (#x%X),\n" xk xk))
+-      (if sym
+-          (insert (format "which corresponds to named key %s.\n\n" (cdr sym)))
+-        (insert "which does not correspond to any known named key.\n\n"))
+-      (if (event-modifier last-input-event)
+-          (insert (format "This key corresponds to the %s modifier.\n\n"
+-                          (event-modifier last-input-event)))
+-        (insert "This key does not correspond to a modifier.\n\n"))
+-      (insert "See the value of the `llk-keysyms' variable for a list of known keys.\n"))))
++  (define-key special-event-map [low-level-key] 'llk--describe))
+ 
+-(defun llk-handle ()
+-  "Internal function to handle low level key events."
++(defun llk--describe ()
++  "Internal function for `special-event-map' to describe low level key events."
+   (interactive)
+-  (if (and (event-is-key-press last-input-event)
+-           llk-describe-next-press)
+-      (llk-show-event-description)
+-    (let ((tap-key (llk-detect-n-tap
+-                    llk-tap-count
+-                    llk-tap-timeout)))
+-      (when tap-key
+-        (let ((func (cl-third
+-                     (seq-find
+-                      (lambda (b)
+-                        (and (eq (cl-first b) 'tap)
+-                             (eq (cl-second b) tap-key)))
+-                      llk-bindings))))
+-          (cond
+-           ((commandp func) (call-interactively func))
+-           ((functionp func) (funcall func))))))))
++  (when (low-level-key-is-key-press last-input-event)
++    (define-key special-event-map [low-level-key] 'llk-handle)
++    (with-help-window (help-buffer)
++      (insert "\n")
++      (let* ((xk (low-level-key-key last-input-event))
++             (sym (assoc xk llk-keysyms)))
++        (insert (format "Keysym number: %d (#x%X),\n" xk xk))
++        (if sym
++            (insert (format "which corresponds to named key %s.\n\n" (cdr sym)))
++          (insert "which does not correspond to any known named key.\n\n"))
++        (if (low-level-key-modifier last-input-event)
++            (insert (format "This key corresponds to the %s modifier.\n\n"
++                            (low-level-key-modifier last-input-event)))
++          (insert "This key does not correspond to a modifier.\n\n"))
++        (insert "See the value of the `llk-keysyms' variable for a list of known keys.\n")))))
++
++(llk--define-keysyms)
++(define-key special-event-map [low-level-key] 'llk-handle)
++(setq llk-bindings nil)
+diff --git a/src/keyboard.c b/src/keyboard.c
+index 326cdb0674d..f25057432d6 100644
+--- a/src/keyboard.c
++++ b/src/keyboard.c
+@@ -13466,13 +13466,8 @@ The value configures the set of keys that are handled:
+ 
+ If t, send events for all keys.
+ 
+-If a number, send events for the corresponding keysym.  When calling
+-`llk-init', a set of variables with the xk- prefix is initialized with
+-the numeric values for keysyms.  Because this number are platform
+-dependent, only the variables should be used to refer to a key.  For
+-example, the 'xk-backspace' variable refer to the backspace key, with
+-the numeric value 0xff08 on X, and the 0x08 on MS-Windows.  You can see
+-all defined variables on the variable `llk-keysyms'.
++If a number, send events for the corresponding keysym.  This numbers are
++platform dependente.  See `llk-keysyms'.
+ 
+ If a symbol, a predefined set of keys is selected.  The only currently
+ valid symbol is 'modifiers.
+-- 
+2.52.0
+

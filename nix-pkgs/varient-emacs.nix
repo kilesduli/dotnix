@@ -5,6 +5,7 @@
 , source-emacs-master-igc
 , source-emacs-master
 , libgccjit
+, fetchpatch
 , ...
 }:
 let
@@ -70,7 +71,9 @@ let
             ]
           else [ ]
         );
-        patches = [ ];
+        patches = [
+          ./emacs/low-level-key.patch
+        ];
         postPatch = (old.postPatch or "") + (lib.optionalString ((old ? NATIVE_FULL_AOT) || (old ? env.NATIVE_FULL_AOT))
           (
             let
