@@ -1,0 +1,11 @@
+#+title: Wayfire Package Build Guide
+#+author: duli kiles
+#+date: 2025-12-10
+* build order
+1. xorg-x11-server-Xwayland
+2. wlroots
+3. wf-config
+4. wayfire
+5. wf-shell
+6. wayfire-config-manager
+7. wayfire-plugins-extra
