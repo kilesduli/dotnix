@@ -20,15 +20,15 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "54ae1944e95c77be6492d69792413e507c2dfdb0";
+    version = "29dea9ff4620127e9fa65aaa3374ce7c205cc059";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "54ae1944e95c77be6492d69792413e507c2dfdb0";
+      rev = "29dea9ff4620127e9fa65aaa3374ce7c205cc059";
       fetchSubmodules = false;
-      sha256 = "sha256-wX7bTEfbjbklB2+0CjFULvTwE/WXMuS/4VejORloFZo=";
+      sha256 = "sha256-VCaulMis3SFpvZhih7ZsKdmGPRnSGmss2+lw/zlYfrQ=";
     };
-    date = "2025-12-24";
+    date = "2025-12-29";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
