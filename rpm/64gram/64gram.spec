@@ -11,13 +11,13 @@
 # Reducing debuginfo verbosity...
 %global optflags %(echo %{optflags} | sed 's/-g /-g1 /')
 
-%global tde2e_commit bdec6af5d70dd51dd8ee9c0565a8a81deb9d169b
+%global tde2e_commit 6d509061574d684117f74133056aa43df89022fc
 %global tde2e_shortcommit %(c=%{tde2e_commit}; echo ${c:0:7})
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.87
-Release:        3%{?dist}
+Version:        1.1.99
+Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
 # * Telegram Desktop - GPL-3.0-or-later with OpenSSL exception -- main tarball;
@@ -38,6 +38,7 @@ Patch:          0003-feat-disable-invite-peeking-restrictions.patch
 Patch:          findprotobuf_fix.patch
 # use mochaa tg_owt instead of rpmfusion, so we need this patch to fix build
 Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-libyuv-include.patch#/tgcalls-fix-libyuv-include.patch
+Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-cstdint-include.patch#/tgcalls-fix-cstdint-include.patch
 
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.

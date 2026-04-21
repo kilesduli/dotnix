@@ -3,7 +3,7 @@
 # Source: https://src.fedoraproject.org/rpms/librime
 Name:           librime
 Epoch:          1
-Version:        1.14.0
+Version:        1.16.1
 Release:        1%{?dist}
 Summary:        Rime Input Method Engine Library
 
@@ -26,8 +26,6 @@ BuildRequires:  marisa-devel
 BuildRequires:  leveldb-devel
 BuildRequires:  lua-devel
 BuildRequires:  capnproto, capnproto-devel
-
-Patch:          librime-fixes-setup-log.patch
 
 %description
 Rime Input Method Engine Library

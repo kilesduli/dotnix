@@ -1,6 +1,6 @@
 %global forgeurl https://github.com/AlynxZhou/showmethekey
 Name:           showmethekey
-Version:        1.18.4
+Version:        1.21.0
 Release:        1%{?dist}
 Summary:        Show keys you typed on screen.
 %forgemeta
@@ -57,6 +57,7 @@ Your desktop must support composition and you may need to set "always on top" an
 %{_bindir}/showmethekey-cli
 %{_datadir}/applications/one.alynx.showmethekey.desktop
 %{_datadir}/glib-2.0/schemas/one.alynx.showmethekey.gschema.xml
+%{_datadir}/glib-2.0/schemas/one.alynx.showmethekey.enums.gschema.xml
 %{_datadir}/icons/hicolor/128x128/apps/one.alynx.showmethekey.png
 %{_datadir}/icons/hicolor/64x64/apps/one.alynx.showmethekey.png
 %{_datadir}/icons/hicolor/scalable/apps/one.alynx.showmethekey.svg

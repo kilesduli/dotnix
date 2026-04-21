@@ -1,6 +1,6 @@
 Name:           chrome-flags-wrapper
-Version:        1.0.0
-Release:        2%{?dist}
+Version:        2.0.0
+Release:        1%{?dist}
 Summary:        Just a chrome flags wrapper
 BuildArch:      noarch
 
@@ -40,7 +40,7 @@ if [ -e "/opt/google/chrome/google-chrome" ]; then
 fi
 
 
-%posttrans
+%triggerin -- google-chrome-stable, google-chrome-unstable, google-chrome-beta, google-chrome-canary
 chromes=(
     "google-chrome-stable"
     "google-chrome-unstable"
