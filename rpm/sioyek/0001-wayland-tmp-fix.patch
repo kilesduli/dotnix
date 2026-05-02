@@ -1,0 +1,47 @@
+From e78ae551ef7663a26eaae862463f39343bfa688e Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Sat, 2 May 2026 20:10:54 +0800
+Subject: [PATCH] wayland tmp fix
+
+---
+ pdf_viewer/main.cpp                   | 4 ++++
+ pdf_viewer/pdf_view_opengl_widget.cpp | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/pdf_viewer/main.cpp b/pdf_viewer/main.cpp
+index 4fa2b7c6..e80f5447 100644
+--- a/pdf_viewer/main.cpp
++++ b/pdf_viewer/main.cpp
+@@ -673,6 +673,7 @@ int main(int argc, char* args[]) {
+     format.setVersion(3, 1);
+ #else
+     format.setVersion(3, 3);
++    format.setRenderableType(QSurfaceFormat::OpenGL);
+ #endif
+ 
+     //    auto behaviour = format.swapBehavior();
+@@ -682,6 +683,9 @@ int main(int argc, char* args[]) {
+     format.setSamples(4);
+     QSurfaceFormat::setDefaultFormat(format);
+ 
++#if !defined(SIOYEK_ANDROID)
++    QCoreApplication::setAttribute(Qt::AA_UseDesktopOpenGL, true);
++#endif
+     QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
+     OpenWithApplication app(argc, args);
+ 
+diff --git a/pdf_viewer/pdf_view_opengl_widget.cpp b/pdf_viewer/pdf_view_opengl_widget.cpp
+index 82609f0f..c780f3d2 100644
+--- a/pdf_viewer/pdf_view_opengl_widget.cpp
++++ b/pdf_viewer/pdf_view_opengl_widget.cpp
+@@ -769,6 +769,7 @@ PdfViewOpenGLWidget::PdfViewOpenGLWidget(DocumentView* document_view, PdfRendere
+     format.setVersion(3, 1);
+ #else
+     format.setVersion(3, 3);
++    format.setRenderableType(QSurfaceFormat::OpenGL);
+ #endif
+     //    format.setSwapBehavior(QSurfaceFormat::SwapBehavior::SingleBuffer);
+     //    format.setSwapInterval(0);
+-- 
+2.54.0
+

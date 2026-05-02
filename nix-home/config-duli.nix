@@ -41,7 +41,6 @@
         vial
         vscode
         calibre
-        sioyek
 
         # openGL related fix
         nixgl.auto.nixGLDefault
