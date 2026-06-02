@@ -40,3 +40,7 @@ stow -t /home/duli --dotfiles script
 sudo dnf install/reinstall chrome-flags-wrapper
 stow -t /home/duli --dotfiles chrome-flags
 #+end_src
+** mise
+#+begin_example bash
+stow -t /home/duli --dotfiles mise
+#+end_example

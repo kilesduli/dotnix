@@ -7,7 +7,6 @@ ZSH_THEME="jovial"
 plugins=(
     bun
     rust
-    volta
     tailscale
     fzf-tab
     zsh-autosuggestions
@@ -15,12 +14,12 @@ plugins=(
 )
 
 source $ZSH/oh-my-zsh.sh
-[[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
 
 eval "$(atuin init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(pyenv init - zsh)"
 eval "$(mihomosh shell-completion zsh)"
+eval "$(mise activate zsh)"
 
 ex ()
 {
@@ -71,5 +70,4 @@ alias -- user-status='systemctl --user status'
 alias -- user-stop='systemctl --user stop'
 alias -- sbcl="sbcl --noinform"
 alias -- restart-gpg="sudo systemctl restart pcscd"
-alias -- start-lute="systemd-run --user --unit lute lute" 
-
+alias -- start-lute="systemd-run --user --unit lute lute"

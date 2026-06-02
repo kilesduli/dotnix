@@ -7,16 +7,6 @@ ZSH_CACHE_DIR="$HOME/.cache/oh-my-zsh"
 # go
 export GOPATH="$HOME/.go"
 
-# bun
-export BUN_INSTALL="$HOME/.bun"
-
-# sdkman
-export SDKMAN_DIR="$HOME/.sdkman"
-export sdkman_auto_complete="true"
-
-# volta
-export VOLTA_HOME="$HOME/.volta"
-
 # emacs
 export LSP_USE_PLISTS="true"
 
@@ -28,7 +18,6 @@ export DOTNET_ROOT="$HOME/.dotnet"
 
 # PATH
 prepend_paths=(
-  "$VOLTA_HOME/bin"
   "$HOME/.cargo/bin"
   "$DOTNET_ROOT"
   "$DOTNET_ROOT/tools"
@@ -37,8 +26,7 @@ prepend_paths=(
 append_paths=(
   "/opt/clojure/bin"
   "$GOPATH/bin"
-  "$BUN_INSTALL/bin"
-  $HOME/.emacs.d/bin
+  "$HOME/.emacs.d/bin"
 )
 
 for p in "${prepend_paths[@]}"; do
