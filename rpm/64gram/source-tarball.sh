@@ -11,6 +11,8 @@ fi
 version=${tag#v}
 echo "Using version: $version"
 
+set -euo pipefail
+
 rm -rf "$name-$version"
 git -c advice.detachedHead=false clone --recurse-submodules --branch "$tag" --depth 1 https://github.com/TDesktop-x64/tdesktop "$name-$version"
 

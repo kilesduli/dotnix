@@ -1,0 +1,119 @@
+From ae9086b4aefddcf3273a5b6adacd1f498637f46b Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Sat, 25 Apr 2026 20:20:16 +0800
+Subject: [PATCH] fix: display redraw
+
+---
+ src/dispextern.h |  2 ++
+ src/dispnew.c    | 18 +++++++++++++++++-
+ src/xdisp.c      |  4 ++++
+ src/xterm.c      |  7 +++++++
+ src/xterm.h      |  3 +++
+ 5 files changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/src/dispextern.h b/src/dispextern.h
+index 83c979a0622..50e6424df08 100644
+--- a/src/dispextern.h
++++ b/src/dispextern.h
+@@ -3032,6 +3032,8 @@ reset_mouse_highlight (Mouse_HLInfo *hlinfo)
+   int height, nrows;
+ };
+ 
++bool redisplay_avoid_pixel_scroll_p (struct frame *);
++
+ 
+ /* Handlers for setting frame parameters.  */
+ 
+diff --git a/src/dispnew.c b/src/dispnew.c
+index 45211b9d2e9..85c7812acd0 100644
+--- a/src/dispnew.c
++++ b/src/dispnew.c
+@@ -105,6 +105,20 @@ Copyright (C) 1985-1988, 1993-1995, 1997-2026 Free Software Foundation,
+ static void tty_set_cursor (struct frame *f);
+ 
+ 
++bool
++redisplay_avoid_pixel_scroll_p (struct frame *f)
++{
++#if defined HAVE_X_WINDOWS && defined USE_LUCID && !defined USE_GTK
++  /* Lucid runs as an X11 client.  Under Xwayland, XCopyArea-based
++     redisplay scrolling can copy stale pixels back into the frame, so
++     prefer repainting the affected rows.  */
++  return FRAME_X_P (f) && FRAME_DISPLAY_INFO (f)->xwayland_p;
++#else
++  return false;
++#endif
++}
++
++
+ #if 0 /* Please leave this in as a debugging aid.  */
+ static void
+ check_rows (struct frame *f)
+@@ -4533,7 +4547,9 @@ update_window (struct window *w)
+     ++row;
+ 
+   /* Try reusing part of the display by copying.  */
+-  if (row < end && !desired_matrix->no_scrolling_p)
++  if (row < end
++      && !desired_matrix->no_scrolling_p
++      && !redisplay_avoid_pixel_scroll_p (XFRAME (WINDOW_FRAME (w))))
+     {
+       int rc = scrolling_window (w, (tab_line_row != NULL ? 1 : 0)
+ 				    + (header_line_row != NULL ? 1 : 0));
+diff --git a/src/xdisp.c b/src/xdisp.c
+index 7479f9a3770..ae5cc3e66f5 100644
+--- a/src/xdisp.c
++++ b/src/xdisp.c
+@@ -21749,6 +21749,7 @@ try_window_reusing_current_matrix (struct window *w)
+ 
+   if (/* This function doesn't handle terminal frames.  */
+       !FRAME_WINDOW_P (f)
++      || redisplay_avoid_pixel_scroll_p (f)
+       /* Don't try to reuse the display if windows have been split
+ 	 or such.  */
+       || windows_or_buffers_changed
+@@ -22592,6 +22593,9 @@ #define GIVE_UP(X) return 0
+ 	  || !WINDOW_FULL_WIDTH_P (w)))
+     GIVE_UP (4);
+ 
++  if (FRAME_WINDOW_P (f) && redisplay_avoid_pixel_scroll_p (f))
++    GIVE_UP (28);
++
+   /* Give up if point is known NOT to appear in W.  */
+   if (PT < CHARPOS (start))
+     GIVE_UP (5);
+diff --git a/src/xterm.c b/src/xterm.c
+index d3f4fc18a32..f538e5d5810 100644
+--- a/src/xterm.c
++++ b/src/xterm.c
+@@ -31160,6 +31160,13 @@ #define NUM_ARGV 10
+     = XineramaQueryExtension (dpy, &xin_event_base, &xin_error_base);
+ #endif
+ 
++  {
++    int opcode, event_base, error_base;
++    dpyinfo->xwayland_p
++      = XQueryExtension (dpyinfo->display, "XWAYLAND",
++			 &opcode, &event_base, &error_base);
++  }
++
+   /* See if a private colormap is requested.  */
+   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
+     {
+diff --git a/src/xterm.h b/src/xterm.h
+index 608d09d2f9f..4df305c2967 100644
+--- a/src/xterm.h
++++ b/src/xterm.h
+@@ -845,6 +845,9 @@ #define X_INVALID_WINDOW 0xffffffff
+   bool supports_xdbe;
+ #endif
+ 
++  /* True if this X server is Xwayland.  */
++  bool xwayland_p;
++
+ #ifdef HAVE_XINPUT2
+   bool supports_xi2;
+ 
+-- 
+2.54.0
+

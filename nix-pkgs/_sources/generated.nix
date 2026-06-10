@@ -20,27 +20,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "c6ec2c6ce1eb743d42a582dd8bfde68e98df4339";
+    version = "d0653b46f65d340ad464e318e06d301380091bc0";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "c6ec2c6ce1eb743d42a582dd8bfde68e98df4339";
+      rev = "d0653b46f65d340ad464e318e06d301380091bc0";
       fetchSubmodules = false;
-      sha256 = "sha256-o/LWcyAtZZk5W37FNDdlXKWlqMHtRD4eBkCxbO09oiI=";
+      sha256 = "sha256-35Qc9yoZVKqsynM5+cbMaYKzNy0q/5nT/WF4VDi2QFE=";
     };
-    date = "2026-04-21";
+    date = "2026-06-10";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "90a383a8f8785d9ba2be487c17c5056c2d2c8be6";
+    version = "18548c4b25fd2769fc30f44bea5bc1a03153036e";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "90a383a8f8785d9ba2be487c17c5056c2d2c8be6";
+      rev = "18548c4b25fd2769fc30f44bea5bc1a03153036e";
       fetchSubmodules = false;
-      sha256 = "sha256-DR1MBFh6OtcUF+0ogHpU+9Sb+wZg4a0MHLNlJuuo0dE=";
+      sha256 = "sha256-+/ZUa8pmqShwiCtPiQ1EHKRY3nSbzFr+osY10dq0slU=";
     };
-    date = "2026-04-21";
+    date = "2026-06-09";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -56,15 +56,15 @@
   };
   source-librime-lua = {
     pname = "source-librime-lua";
-    version = "68f9c364a2d25a04c7d4794981d7c796b05ab627";
+    version = "ec52e48ea18f11af37717a01c337f853215cf70b";
     src = fetchFromGitHub {
       owner = "hchunhui";
       repo = "librime-lua";
-      rev = "68f9c364a2d25a04c7d4794981d7c796b05ab627";
+      rev = "ec52e48ea18f11af37717a01c337f853215cf70b";
       fetchSubmodules = false;
-      sha256 = "sha256-m7/qXdIlMMHscDDcFmusNuOR0cuzPpDQdprqRci8qZw=";
+      sha256 = "sha256-ipqsYAqlt29dZlgynziCC4rHFDbXsD64KPkhXQiz8/w=";
     };
-    date = "2025-07-07";
+    date = "2026-05-02";
   };
   source-librime-octagram = {
     pname = "source-librime-octagram";
@@ -103,14 +103,14 @@
   };
   source-zsh-jovial-theme = {
     pname = "source-zsh-jovial-theme";
-    version = "16765c87c52cc6531bb3fc3328c2d40354746d94";
+    version = "426fe1fb612e85817ec23440a64f2732b8d34b3f";
     src = fetchFromGitHub {
       owner = "zthxxx";
       repo = "jovial";
-      rev = "16765c87c52cc6531bb3fc3328c2d40354746d94";
+      rev = "426fe1fb612e85817ec23440a64f2732b8d34b3f";
       fetchSubmodules = false;
-      sha256 = "sha256-4KwtOFxZJ5JWn7ZElLUgOUupUyUOj1FQvPrSFaGmeEw=";
+      sha256 = "sha256-VvF1alXCLatkSDJGImxFkijiVwtOGYgH1gXlqLfgWcs=";
     };
-    date = "2026-02-22";
+    date = "2026-05-12";
   };
 }

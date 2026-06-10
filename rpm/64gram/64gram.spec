@@ -16,7 +16,7 @@
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.1.99
+Version:        1.2.3
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
@@ -38,8 +38,6 @@ Patch:          0003-feat-disable-invite-peeking-restrictions.patch
 Patch:          findprotobuf_fix.patch
 # use mochaa tg_owt instead of rpmfusion, so we need this patch to fix build
 Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-libyuv-include.patch#/tgcalls-fix-libyuv-include.patch
-Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-cstdint-include.patch#/tgcalls-fix-cstdint-include.patch
-
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
 ExclusiveArch:  x86_64 aarch64

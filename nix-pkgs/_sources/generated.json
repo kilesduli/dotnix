@@ -22,7 +22,7 @@
     },
     "source-emacs-master": {
         "cargoLock": null,
-        "date": "2026-04-21",
+        "date": "2026-06-10",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -34,16 +34,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "c6ec2c6ce1eb743d42a582dd8bfde68e98df4339",
-            "sha256": "sha256-o/LWcyAtZZk5W37FNDdlXKWlqMHtRD4eBkCxbO09oiI=",
+            "rev": "d0653b46f65d340ad464e318e06d301380091bc0",
+            "sha256": "sha256-35Qc9yoZVKqsynM5+cbMaYKzNy0q/5nT/WF4VDi2QFE=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "c6ec2c6ce1eb743d42a582dd8bfde68e98df4339"
+        "version": "d0653b46f65d340ad464e318e06d301380091bc0"
     },
     "source-emacs-master-igc": {
         "cargoLock": null,
-        "date": "2026-04-21",
+        "date": "2026-06-09",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -55,12 +55,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "90a383a8f8785d9ba2be487c17c5056c2d2c8be6",
-            "sha256": "sha256-DR1MBFh6OtcUF+0ogHpU+9Sb+wZg4a0MHLNlJuuo0dE=",
+            "rev": "18548c4b25fd2769fc30f44bea5bc1a03153036e",
+            "sha256": "sha256-+/ZUa8pmqShwiCtPiQ1EHKRY3nSbzFr+osY10dq0slU=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "90a383a8f8785d9ba2be487c17c5056c2d2c8be6"
+        "version": "18548c4b25fd2769fc30f44bea5bc1a03153036e"
     },
     "source-librime-charcode": {
         "cargoLock": null,
@@ -85,7 +85,7 @@
     },
     "source-librime-lua": {
         "cargoLock": null,
-        "date": "2025-07-07",
+        "date": "2026-05-02",
         "extract": null,
         "name": "source-librime-lua",
         "passthru": null,
@@ -97,12 +97,12 @@
             "name": null,
             "owner": "hchunhui",
             "repo": "librime-lua",
-            "rev": "68f9c364a2d25a04c7d4794981d7c796b05ab627",
-            "sha256": "sha256-m7/qXdIlMMHscDDcFmusNuOR0cuzPpDQdprqRci8qZw=",
+            "rev": "ec52e48ea18f11af37717a01c337f853215cf70b",
+            "sha256": "sha256-ipqsYAqlt29dZlgynziCC4rHFDbXsD64KPkhXQiz8/w=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "68f9c364a2d25a04c7d4794981d7c796b05ab627"
+        "version": "ec52e48ea18f11af37717a01c337f853215cf70b"
     },
     "source-librime-octagram": {
         "cargoLock": null,
@@ -169,7 +169,7 @@
     },
     "source-zsh-jovial-theme": {
         "cargoLock": null,
-        "date": "2026-02-22",
+        "date": "2026-05-12",
         "extract": null,
         "name": "source-zsh-jovial-theme",
         "passthru": null,
@@ -181,11 +181,11 @@
             "name": null,
             "owner": "zthxxx",
             "repo": "jovial",
-            "rev": "16765c87c52cc6531bb3fc3328c2d40354746d94",
-            "sha256": "sha256-4KwtOFxZJ5JWn7ZElLUgOUupUyUOj1FQvPrSFaGmeEw=",
+            "rev": "426fe1fb612e85817ec23440a64f2732b8d34b3f",
+            "sha256": "sha256-VvF1alXCLatkSDJGImxFkijiVwtOGYgH1gXlqLfgWcs=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "16765c87c52cc6531bb3fc3328c2d40354746d94"
+        "version": "426fe1fb612e85817ec23440a64f2732b8d34b3f"
     }
 }
