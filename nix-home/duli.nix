@@ -4,6 +4,7 @@
   imports = [
     ./part/emacs.nix
     ./part/zsh.nix
+    ./part/mygo.nix
     ./config-duli.nix
   ];
 

@@ -1,0 +1,200 @@
+From fc0343a30cba60b3871112e49414920b1fe13864 Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Wed, 17 Jun 2026 13:24:50 +0800
+Subject: [PATCH 2/2] rename go to mygo
+
+---
+ src/all.bash             |  2 +-
+ src/cmd/dist/build.go    | 37 ++++++++++++++++++++++++++++++++++---
+ src/cmd/distpack/pack.go |  6 +++---
+ src/cmd/distpack/test.go | 32 ++++++++++++++++----------------
+ src/run.bash             |  8 ++++----
+ 5 files changed, 58 insertions(+), 27 deletions(-)
+
+diff --git a/src/all.bash b/src/all.bash
+index adbc60e361..56981ec581 100755
+--- a/src/all.bash
++++ b/src/all.bash
+@@ -10,4 +10,4 @@ if [ ! -f make.bash ]; then
+ fi
+ . ./make.bash "$@" --no-banner
+ bash run.bash --no-rebuild
+-../bin/go tool dist banner # print build info
++../bin/mygo tool dist banner # print build info
+diff --git a/src/cmd/dist/build.go b/src/cmd/dist/build.go
+index e4250e12de..c4013380b6 100644
+--- a/src/cmd/dist/build.go
++++ b/src/cmd/dist/build.go
+@@ -118,7 +118,10 @@ func xinit() {
+ 	// runs cmd/dist inside go/bin often, and on Windows
+ 	// it will be found in the current directory and refuse to exec.
+ 	// All exec calls rewrite "go" into gorootBinGo.
+-	gorootBinGo = pathf("%s/bin/go", goroot)
++	gorootBinGo = pathf("%s/bin/%s%s", goroot, binGoName, exe)
++	if !isfile(gorootBinGo) {
++		gorootBinGo = pathf("%s/bin/go%s", goroot, exe)
++	}
+ 
+ 	b = os.Getenv("GOOS")
+ 	if b == "" {
+@@ -1388,6 +1391,9 @@ func toolenv() []string {
+ var (
+ 	toolchain = []string{"cmd/asm", "cmd/cgo", "cmd/compile", "cmd/link", "cmd/preprofile"}
+ 
++	binGoName    = "mygo"
++	binGofmtName = "mygofmt"
++
+ 	// Keep in sync with binExes in cmd/distpack/pack.go.
+ 	binExesIncludedInDistpack = []string{"cmd/go", "cmd/gofmt"}
+ 
+@@ -1637,8 +1643,10 @@ func cmdbootstrap() {
+ 		copyfile(pathf("%s/compile4", tooldir), pathf("%s/compile", tooldir), writeExec)
+ 	}
+ 
++	renameBinExes()
++
+ 	// Check that there are no new files in $GOROOT/bin other than
+-	// go and gofmt and $GOOS_$GOARCH (target bin when cross-compiling).
++	// mygo and mygofmt and $GOOS_$GOARCH (target bin when cross-compiling).
+ 	binFiles, err := filepath.Glob(pathf("%s/bin/*", goroot))
+ 	if err != nil {
+ 		fatalf("glob: %v", err)
+@@ -1653,7 +1661,7 @@ func cmdbootstrap() {
+ 			continue // unfortunate but not unexpected
+ 		}
+ 		elem := strings.TrimSuffix(filepath.Base(f), ".exe")
+-		if !ok[f] && elem != "go" && elem != "gofmt" && elem != goos+"_"+goarch {
++		if !ok[f] && elem != binGoName && elem != binGofmtName && elem != goos+"_"+goarch {
+ 			fatalf("unexpected new file in $GOROOT/bin: %s", elem)
+ 		}
+ 	}
+@@ -1690,6 +1698,29 @@ func cmdbootstrap() {
+ 	}
+ }
+ 
++func renameBinExes() {
++	rename := func(dir, old, new string) {
++		oldPath := pathf("%s/%s%s", dir, old, exe)
++		newPath := pathf("%s/%s%s", dir, new, exe)
++		if oldPath == newPath {
++			return
++		}
++		xremove(newPath)
++		if err := os.Rename(oldPath, newPath); err != nil {
++			fatalf("rename %s to %s: %v", oldPath, newPath, err)
++		}
++	}
++
++	rename(gorootBin, "go", binGoName)
++	rename(gorootBin, "gofmt", binGofmtName)
++	if goos != gohostos || goarch != gohostarch {
++		targetBin := pathf("%s/%s_%s", gorootBin, goos, goarch)
++		rename(targetBin, "go", binGoName)
++		rename(targetBin, "gofmt", binGofmtName)
++	}
++	gorootBinGo = pathf("%s/%s%s", gorootBin, binGoName, exe)
++}
++
+ func wrapperPathFor(goos, goarch string) string {
+ 	switch {
+ 	case goos == "android":
+diff --git a/src/cmd/distpack/pack.go b/src/cmd/distpack/pack.go
+index 09c3a33119..44ff962610 100644
+--- a/src/cmd/distpack/pack.go
++++ b/src/cmd/distpack/pack.go
+@@ -178,12 +178,12 @@ func main() {
+ 		return true
+ 	})
+ 
+-	// Add go and gofmt to bin, using cross-compiled binaries
++	// Add mygo and mygofmt to bin, using cross-compiled binaries
+ 	// if this is a cross-compiled distribution.
+ 	// Keep in sync with binExesIncludedInDistpack in cmd/dist/build.go.
+ 	binExes := []string{
+-		"go",
+-		"gofmt",
++		"mygo",
++		"mygofmt",
+ 	}
+ 	crossBin := "bin"
+ 	if goos != gohostos || goarch != gohostarch {
+diff --git a/src/cmd/distpack/test.go b/src/cmd/distpack/test.go
+index 7479bd77f5..bc2eb3280e 100644
+--- a/src/cmd/distpack/test.go
++++ b/src/cmd/distpack/test.go
+@@ -54,14 +54,14 @@ var zipRules = []testRule{
+ 	{name: "go/src/cmd/dist/dist", exclude: true},
+ 	{name: "go/src/cmd/dist/dist.exe", exclude: true},
+ 
+-	{name: "go/bin/go", goos: "linux"},
+-	{name: "go/bin/go", goos: "darwin"},
+-	{name: "go/bin/go", goos: "windows", exclude: true},
+-	{name: "go/bin/go.exe", goos: "windows"},
+-	{name: "go/bin/gofmt", goos: "linux"},
+-	{name: "go/bin/gofmt", goos: "darwin"},
+-	{name: "go/bin/gofmt", goos: "windows", exclude: true},
+-	{name: "go/bin/gofmt.exe", goos: "windows"},
++	{name: "go/bin/mygo", goos: "linux"},
++	{name: "go/bin/mygo", goos: "darwin"},
++	{name: "go/bin/mygo", goos: "windows", exclude: true},
++	{name: "go/bin/mygo.exe", goos: "windows"},
++	{name: "go/bin/mygofmt", goos: "linux"},
++	{name: "go/bin/mygofmt", goos: "darwin"},
++	{name: "go/bin/mygofmt", goos: "windows", exclude: true},
++	{name: "go/bin/mygofmt.exe", goos: "windows"},
+ 	{name: "go/pkg/tool/*/compile", goos: "linux"},
+ 	{name: "go/pkg/tool/*/compile", goos: "darwin"},
+ 	{name: "go/pkg/tool/*/compile", goos: "windows", exclude: true},
+@@ -90,14 +90,14 @@ var modRules = []testRule{
+ 	{name: "golang.org/toolchain@*/src/cmd/dist/dist", exclude: true},
+ 	{name: "golang.org/toolchain@*/src/cmd/dist/dist.exe", exclude: true},
+ 
+-	{name: "golang.org/toolchain@*/bin/go", goos: "linux"},
+-	{name: "golang.org/toolchain@*/bin/go", goos: "darwin"},
+-	{name: "golang.org/toolchain@*/bin/go", goos: "windows", exclude: true},
+-	{name: "golang.org/toolchain@*/bin/go.exe", goos: "windows"},
+-	{name: "golang.org/toolchain@*/bin/gofmt", goos: "linux"},
+-	{name: "golang.org/toolchain@*/bin/gofmt", goos: "darwin"},
+-	{name: "golang.org/toolchain@*/bin/gofmt", goos: "windows", exclude: true},
+-	{name: "golang.org/toolchain@*/bin/gofmt.exe", goos: "windows"},
++	{name: "golang.org/toolchain@*/bin/mygo", goos: "linux"},
++	{name: "golang.org/toolchain@*/bin/mygo", goos: "darwin"},
++	{name: "golang.org/toolchain@*/bin/mygo", goos: "windows", exclude: true},
++	{name: "golang.org/toolchain@*/bin/mygo.exe", goos: "windows"},
++	{name: "golang.org/toolchain@*/bin/mygofmt", goos: "linux"},
++	{name: "golang.org/toolchain@*/bin/mygofmt", goos: "darwin"},
++	{name: "golang.org/toolchain@*/bin/mygofmt", goos: "windows", exclude: true},
++	{name: "golang.org/toolchain@*/bin/mygofmt.exe", goos: "windows"},
+ 	{name: "golang.org/toolchain@*/pkg/tool/*/compile", goos: "linux"},
+ 	{name: "golang.org/toolchain@*/pkg/tool/*/compile", goos: "darwin"},
+ 	{name: "golang.org/toolchain@*/pkg/tool/*/compile", goos: "windows", exclude: true},
+diff --git a/src/run.bash b/src/run.bash
+index cb474325c4..574495b85e 100755
+--- a/src/run.bash
++++ b/src/run.bash
+@@ -24,13 +24,13 @@
+ 
+ set -e
+ 
+-if [ ! -f ../bin/go ]; then
+-	echo 'run.bash must be run from $GOROOT/src after installing cmd/go' 1>&2
++if [ ! -f ../bin/mygo ]; then
++	echo 'run.bash must be run from $GOROOT/src after installing cmd/go as mygo' 1>&2
+ 	exit 1
+ fi
+ 
+ export GOENV=off
+-eval $(../bin/go tool dist env)
++eval $(../bin/mygo tool dist env)
+ 
+ unset CDPATH	# in case user has it set
+ 
+@@ -50,4 +50,4 @@ if ulimit -T &> /dev/null; then
+ fi
+ 
+ export GOPATH=/nonexist-gopath
+-exec ../bin/go tool dist test -rebuild "$@"
++exec ../bin/mygo tool dist test -rebuild "$@"
+-- 
+2.54.0
+

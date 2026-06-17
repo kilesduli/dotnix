@@ -1,0 +1,260 @@
+From 05cfcca8511b4705a9ca3cc083fcda388a480f05 Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Wed, 17 Jun 2026 13:24:38 +0800
+Subject: [PATCH 1/2] let unused import/variable as warning
+
+Unused variable side effect will keep.
+Unused import will delete.
+---
+ src/cmd/compile/internal/noder/irgen.go       | 70 +++++++++++++++++++
+ src/cmd/compile/internal/types2/api.go        |  5 ++
+ src/cmd/compile/internal/types2/errors.go     |  7 +-
+ .../unused_import_warning_prunes_init.txt     | 25 +++++++
+ .../script/unused_var_warning_builds.txt      | 25 +++++++
+ src/cmd/internal/obj/line.go                  | 11 +++
+ 6 files changed, 142 insertions(+), 1 deletion(-)
+ create mode 100644 src/cmd/compile/testdata/script/unused_import_warning_prunes_init.txt
+ create mode 100644 src/cmd/compile/testdata/script/unused_var_warning_builds.txt
+
+diff --git a/src/cmd/compile/internal/noder/irgen.go b/src/cmd/compile/internal/noder/irgen.go
+index 05f0affe8a..15659254ab 100644
+--- a/src/cmd/compile/internal/noder/irgen.go
++++ b/src/cmd/compile/internal/noder/irgen.go
+@@ -14,6 +14,8 @@ import (
+ 	"cmd/compile/internal/base"
+ 	"cmd/compile/internal/rangefunc"
+ 	"cmd/compile/internal/syntax"
++	"cmd/compile/internal/typecheck"
++	"cmd/compile/internal/types"
+ 	"cmd/compile/internal/types2"
+ 	"cmd/internal/src"
+ )
+@@ -50,6 +52,15 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
+ 		ctxt:     ctxt,
+ 		packages: make(map[string]*types2.Package),
+ 	}
++	unusedImportPos := make(map[syntax.Pos]bool)
++	isWarning := func(err types2.Error) bool {
++		switch err.Code {
++		case errors.UnusedImport, errors.UnusedVar:
++			return true
++		default:
++			return false
++		}
++	}
+ 	conf := types2.Config{
+ 		Context:            ctxt,
+ 		GoVersion:          base.Flag.Lang,
+@@ -57,6 +68,7 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
+ 		Importer:           &importer,
+ 		Sizes:              types2.SizesFor("gc", buildcfg.GOARCH),
+ 		EnableAlias:        true,
++		ErrorIsWarning:     isWarning,
+ 	}
+ 	if base.Flag.ErrorURL {
+ 		conf.ErrorURL = " [go.dev/e/%s]"
+@@ -89,6 +101,13 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
+ 				msg = fmt.Sprintf("%s (-lang was set to %s; check go.mod)", msg, base.Flag.Lang)
+ 			}
+ 		}
++		if isWarning(terr) {
++			if terr.Code == errors.UnusedImport {
++				unusedImportPos[terr.Pos] = true
++			}
++			base.WarnfAt(m.makeXPos(terr.Pos), "warning: %s", msg)
++			return
++		}
+ 		base.ErrorfAt(m.makeXPos(terr.Pos), terr.Code, "%s", msg)
+ 	}
+ 
+@@ -97,6 +116,9 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
+ 	if err != nil {
+ 		base.FatalfAt(src.NoXPos, "conf.Check error: %v", err)
+ 	}
++	if len(unusedImportPos) > 0 {
++		dropUnusedImports(pkg, info, files, unusedImportPos)
++	}
+ 
+ 	// Check for anonymous interface cycles (#56103).
+ 	// TODO(gri) move this code into the type checkers (types2 and go/types)
+@@ -184,6 +206,54 @@ func checkFiles(m posMap, noders []*noder) (*types2.Package, *types2.Info, map[*
+ 	return pkg, info, rangeInfo
+ }
+ 
++func dropUnusedImports(pkg *types2.Package, info *types2.Info, files []*syntax.File, unusedImportPos map[syntax.Pos]bool) {
++	unusedPaths := make(map[string]bool)
++	usedPaths := make(map[string]bool)
++	for _, file := range files {
++		for _, decl := range file.DeclList {
++			imp, ok := decl.(*syntax.ImportDecl)
++			if !ok {
++				continue
++			}
++			if pkgName := info.PkgNameOf(imp); pkgName != nil {
++				path := pkgName.Imported().Path()
++				if unusedImportPos[pkgName.Pos()] {
++					unusedPaths[path] = true
++				} else {
++					usedPaths[path] = true
++				}
++			}
++		}
++	}
++	for path := range usedPaths {
++		delete(unusedPaths, path)
++	}
++	if len(unusedPaths) == 0 {
++		return
++	}
++
++	imports := pkg.Imports()[:0]
++	for _, imp := range pkg.Imports() {
++		if !unusedPaths[imp.Path()] {
++			imports = append(imports, imp)
++		}
++	}
++	pkg.SetImports(imports)
++
++	targetImports := typecheck.Target.Imports[:0]
++	for _, imp := range typecheck.Target.Imports {
++		if !unusedPaths[imp.Path] {
++			targetImports = append(targetImports, imp)
++		}
++	}
++	typecheck.Target.Imports = targetImports
++
++	for path := range unusedPaths {
++		base.Ctxt.RemoveImport(path)
++		types.NewPkg(path, "").Direct = false
++	}
++}
++
+ // A cycleFinder detects anonymous interface cycles (go.dev/issue/56103).
+ type cycleFinder struct {
+ 	cyclic map[*types2.Interface]bool
+diff --git a/src/cmd/compile/internal/types2/api.go b/src/cmd/compile/internal/types2/api.go
+index 8752eff992..55a98143fc 100644
+--- a/src/cmd/compile/internal/types2/api.go
++++ b/src/cmd/compile/internal/types2/api.go
+@@ -154,6 +154,11 @@ type Config struct {
+ 	// error found.
+ 	Error func(err error)
+ 
++	// If ErrorIsWarning != nil and returns true for a soft error, that
++	// error is still reported via Error but does not count as a blocking
++	// type-checking failure.
++	ErrorIsWarning func(err Error) bool
++
+ 	// An importer is used to import packages referred to from
+ 	// import declarations.
+ 	// If the installed importer implements ImporterFrom, the type
+diff --git a/src/cmd/compile/internal/types2/errors.go b/src/cmd/compile/internal/types2/errors.go
+index e2f5508a1a..4a0cc28ec9 100644
+--- a/src/cmd/compile/internal/types2/errors.go
++++ b/src/cmd/compile/internal/types2/errors.go
+@@ -195,12 +195,17 @@ func (check *Checker) handleError(index int, pos syntax.Pos, code Code, msg stri
+ 		Code: code,
+ 	}
+ 
+-	if check.firstErr == nil {
++	isWarning := e.Soft && check.conf.ErrorIsWarning != nil && check.conf.ErrorIsWarning(e)
++
++	if !isWarning && check.firstErr == nil {
+ 		check.firstErr = e
+ 	}
+ 
+ 	f := check.conf.Error
+ 	if f == nil {
++		if isWarning {
++			return
++		}
+ 		panic(bailout{}) // record first error and exit
+ 	}
+ 	f(e)
+diff --git a/src/cmd/compile/testdata/script/unused_import_warning_prunes_init.txt b/src/cmd/compile/testdata/script/unused_import_warning_prunes_init.txt
+new file mode 100644
+index 0000000000..67ec4da024
+--- /dev/null
++++ b/src/cmd/compile/testdata/script/unused_import_warning_prunes_init.txt
+@@ -0,0 +1,25 @@
++go build -buildvcs=false -o main.exe ./main
++stderr 'warning: "example.com/unusedimport/side" imported and not used'
++exec ./main.exe
++! exists side-effect.txt
++
++-- go.mod --
++module example.com/unusedimport
++
++go 1.26
++
++-- main/main.go --
++package main
++
++import "example.com/unusedimport/side"
++
++func main() {}
++
++-- side/side.go --
++package side
++
++import "os"
++
++func init() {
++	_ = os.WriteFile("side-effect.txt", []byte("ran\n"), 0o666)
++}
+diff --git a/src/cmd/compile/testdata/script/unused_var_warning_builds.txt b/src/cmd/compile/testdata/script/unused_var_warning_builds.txt
+new file mode 100644
+index 0000000000..2951392616
+--- /dev/null
++++ b/src/cmd/compile/testdata/script/unused_var_warning_builds.txt
+@@ -0,0 +1,25 @@
++go build -buildvcs=false -o main.exe .
++stderr 'warning: declared and not used: x'
++exec ./main.exe
++
++-- go.mod --
++module example.com/unusedvar
++
++go 1.26
++
++-- main.go --
++package main
++
++var sink int
++
++func side() int {
++	sink++
++	return sink
++}
++
++func main() {
++	x := side()
++	if sink != 1 {
++		panic("unused variable initializer was removed")
++	}
++}
+diff --git a/src/cmd/internal/obj/line.go b/src/cmd/internal/obj/line.go
+index 988640f6a4..13f4687deb 100644
+--- a/src/cmd/internal/obj/line.go
++++ b/src/cmd/internal/obj/line.go
+@@ -14,6 +14,17 @@ func (ctxt *Link) AddImport(pkg string, fingerprint goobj.FingerprintType) {
+ 	ctxt.Imports = append(ctxt.Imports, goobj.ImportedPkg{Pkg: pkg, Fingerprint: fingerprint})
+ }
+ 
++// RemoveImport removes a package from the list of imported packages.
++func (ctxt *Link) RemoveImport(pkg string) {
++	imports := ctxt.Imports[:0]
++	for _, imp := range ctxt.Imports {
++		if imp.Pkg != pkg {
++			imports = append(imports, imp)
++		}
++	}
++	ctxt.Imports = imports
++}
++
+ // getFileIndexAndLine returns the relative file index (local to the CU), and
+ // the relative line number for a position (i.e., as adjusted by a //line
+ // directive). This is the file/line visible in the final binary (pcfile, pcln,
+-- 
+2.54.0
+
