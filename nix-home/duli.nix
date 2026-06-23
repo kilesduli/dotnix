@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./part/cnws.nix
     ./part/emacs.nix
     ./part/zsh.nix
     ./part/mygo.nix

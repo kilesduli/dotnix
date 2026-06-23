@@ -1,4 +1,25 @@
 {
+    "source-cnws": {
+        "cargoLock": null,
+        "date": "2025-09-03",
+        "extract": null,
+        "name": "source-cnws",
+        "passthru": null,
+        "pinned": false,
+        "src": {
+            "deepClone": false,
+            "fetchSubmodules": true,
+            "leaveDotGit": false,
+            "name": null,
+            "owner": "kanglmf",
+            "repo": "emacs-chinese-word-segmentation",
+            "rev": "fd2e711dc7fd957267df5056a57575b3eb090ac4",
+            "sha256": "sha256-TnlrAA3KuQsBvmcc7yk0IKLpaSyJg8e1wGKBbF5b9pI=",
+            "sparseCheckout": [],
+            "type": "github"
+        },
+        "version": "fd2e711dc7fd957267df5056a57575b3eb090ac4"
+    },
     "source-emacs-lsp-booster": {
         "cargoLock": null,
         "date": "2026-04-12",

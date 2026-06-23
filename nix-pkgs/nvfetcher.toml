@@ -34,3 +34,8 @@ fetch.github = "emacs-mirror/emacs"
 [source-spicetify-cli]
 src.github = "spicetify/cli"
 fetch.github = "spicetify/cli"
+
+[source-cnws]
+src.git = "https://github.com/kanglmf/emacs-chinese-word-segmentation"
+fetch.github = "kanglmf/emacs-chinese-word-segmentation"
+git.fetchSubmodules = true

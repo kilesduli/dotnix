@@ -6,6 +6,18 @@
   dockerTools,
 }:
 {
+  source-cnws = {
+    pname = "source-cnws";
+    version = "fd2e711dc7fd957267df5056a57575b3eb090ac4";
+    src = fetchFromGitHub {
+      owner = "kanglmf";
+      repo = "emacs-chinese-word-segmentation";
+      rev = "fd2e711dc7fd957267df5056a57575b3eb090ac4";
+      fetchSubmodules = true;
+      sha256 = "sha256-TnlrAA3KuQsBvmcc7yk0IKLpaSyJg8e1wGKBbF5b9pI=";
+    };
+    date = "2025-09-03";
+  };
   source-emacs-lsp-booster = {
     pname = "source-emacs-lsp-booster";
     version = "004bb508c9a2d2877b9145fcccd5437f23a0b669";
