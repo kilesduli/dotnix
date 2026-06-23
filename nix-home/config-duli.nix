@@ -51,6 +51,7 @@
         xclip
         emacs-lsp-booster
         tdlib
+        pizauth
 
         # scheme
         chez
