@@ -1,21 +1,21 @@
-From ae9086b4aefddcf3273a5b6adacd1f498637f46b Mon Sep 17 00:00:00 2001
+From c7d97daca774f5df169c692f6ab02d9199b6a514 Mon Sep 17 00:00:00 2001
 From: duli <duli4868@gmail.com>
-Date: Sat, 25 Apr 2026 20:20:16 +0800
-Subject: [PATCH] fix: display redraw
+Date: Mon, 15 Jun 2026 11:44:40 +0800
+Subject: [PATCH] fix-display-redraw
 
 ---
  src/dispextern.h |  2 ++
  src/dispnew.c    | 18 +++++++++++++++++-
- src/xdisp.c      |  4 ++++
+ src/xdisp.c      | 18 ++++++++++++++++++
  src/xterm.c      |  7 +++++++
  src/xterm.h      |  3 +++
- 5 files changed, 33 insertions(+), 1 deletion(-)
+ 5 files changed, 47 insertions(+), 1 deletion(-)
 
 diff --git a/src/dispextern.h b/src/dispextern.h
-index 83c979a0622..50e6424df08 100644
+index ef301ee45ac..bef8570a94b 100644
 --- a/src/dispextern.h
 +++ b/src/dispextern.h
-@@ -3032,6 +3032,8 @@ reset_mouse_highlight (Mouse_HLInfo *hlinfo)
+@@ -3067,6 +3067,8 @@ reset_mouse_highlight (Mouse_HLInfo *hlinfo)
    int height, nrows;
  };
  
@@ -25,7 +25,7 @@ index 83c979a0622..50e6424df08 100644
  /* Handlers for setting frame parameters.  */
  
 diff --git a/src/dispnew.c b/src/dispnew.c
-index 45211b9d2e9..85c7812acd0 100644
+index d7141f953cc..12deaaa5911 100644
 --- a/src/dispnew.c
 +++ b/src/dispnew.c
 @@ -105,6 +105,20 @@ Copyright (C) 1985-1988, 1993-1995, 1997-2026 Free Software Foundation,
@@ -49,7 +49,7 @@ index 45211b9d2e9..85c7812acd0 100644
  #if 0 /* Please leave this in as a debugging aid.  */
  static void
  check_rows (struct frame *f)
-@@ -4533,7 +4547,9 @@ update_window (struct window *w)
+@@ -4537,7 +4551,9 @@ update_window (struct window *w)
      ++row;
  
    /* Try reusing part of the display by copying.  */
@@ -61,32 +61,53 @@ index 45211b9d2e9..85c7812acd0 100644
        int rc = scrolling_window (w, (tab_line_row != NULL ? 1 : 0)
  				    + (header_line_row != NULL ? 1 : 0));
 diff --git a/src/xdisp.c b/src/xdisp.c
-index 7479f9a3770..ae5cc3e66f5 100644
+index 9647104ada8..11e15f1e231 100644
 --- a/src/xdisp.c
 +++ b/src/xdisp.c
-@@ -21749,6 +21749,7 @@ try_window_reusing_current_matrix (struct window *w)
+@@ -21939,6 +21939,12 @@ try_window_reusing_current_matrix (struct window *w)
  
-   if (/* This function doesn't handle terminal frames.  */
-       !FRAME_WINDOW_P (f)
-+      || redisplay_avoid_pixel_scroll_p (f)
-       /* Don't try to reuse the display if windows have been split
- 	 or such.  */
-       || windows_or_buffers_changed
-@@ -22592,6 +22593,9 @@ #define GIVE_UP(X) return 0
- 	  || !WINDOW_FULL_WIDTH_P (w)))
-     GIVE_UP (4);
- 
-+  if (FRAME_WINDOW_P (f) && redisplay_avoid_pixel_scroll_p (f))
-+    GIVE_UP (28);
+ 	  if (run.height > 0 && run.current_y != run.desired_y)
+ 	    {
++	      if (redisplay_avoid_pixel_scroll_p (f))
++		{
++		  clear_glyph_matrix (w->desired_matrix);
++		  return false;
++		}
 +
-   /* Give up if point is known NOT to appear in W.  */
-   if (PT < CHARPOS (start))
-     GIVE_UP (5);
+ #ifdef HAVE_WINDOW_SYSTEM
+ 	      update_begin (f);
+ 	      gui_update_window_begin (w);
+@@ -22107,6 +22113,12 @@ try_window_reusing_current_matrix (struct window *w)
+ 
+       if (run.height)
+ 	{
++	  if (redisplay_avoid_pixel_scroll_p (f))
++	    {
++	      clear_glyph_matrix (w->desired_matrix);
++	      return false;
++	    }
++
+ #ifdef HAVE_WINDOW_SYSTEM
+ 	  update_begin (f);
+ 	  gui_update_window_begin (w);
+@@ -23117,6 +23129,12 @@ #define GIVE_UP(X) return 0
+      found.  */
+   if (dy && run.height)
+     {
++      if (FRAME_WINDOW_P (f) && redisplay_avoid_pixel_scroll_p (f))
++	{
++	  clear_glyph_matrix (w->desired_matrix);
++	  return 0;
++	}
++
+       update_begin (f);
+ 
+       if (FRAME_WINDOW_P (f))
 diff --git a/src/xterm.c b/src/xterm.c
-index d3f4fc18a32..f538e5d5810 100644
+index e9b551502c2..dcaf0ba21ab 100644
 --- a/src/xterm.c
 +++ b/src/xterm.c
-@@ -31160,6 +31160,13 @@ #define NUM_ARGV 10
+@@ -31228,6 +31228,13 @@ #define NUM_ARGV 10
      = XineramaQueryExtension (dpy, &xin_event_base, &xin_error_base);
  #endif
  
@@ -101,10 +122,10 @@ index d3f4fc18a32..f538e5d5810 100644
    if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
      {
 diff --git a/src/xterm.h b/src/xterm.h
-index 608d09d2f9f..4df305c2967 100644
+index 20633f283bd..09df33425c1 100644
 --- a/src/xterm.h
 +++ b/src/xterm.h
-@@ -845,6 +845,9 @@ #define X_INVALID_WINDOW 0xffffffff
+@@ -847,6 +847,9 @@ #define X_INVALID_WINDOW 0xffffffff
    bool supports_xdbe;
  #endif
  

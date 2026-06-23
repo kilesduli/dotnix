@@ -72,7 +72,6 @@ let
           else [ ]
         );
         patches = [
-          ./emacs/low-level-key.patch
           ./emacs/0001-fix-display-redraw.patch
         ];
         postPatch = (old.postPatch or "") + (lib.optionalString ((old ? NATIVE_FULL_AOT) || (old ? env.NATIVE_FULL_AOT))
