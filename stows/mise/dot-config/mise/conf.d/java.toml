@@ -7,7 +7,7 @@ ls=/usr/bin/ls
 src="$HOME/.local/share/mise/installs/java"
 dst="$HOME/.sdkman/candidates/java"
 mkdir -p $dst
-for v in $($ls -1 "$src" | grep -E '^[A-Za-z]+-[0-9]+$'); do
+for v in $($ls -1 "$src" | grep -E '^[[:alpha:]][[:alnum:]-]*-[0-9]+$'); do
     ln -sfn "$src/$v" "$dst/$v"
 done
 """
