@@ -23,7 +23,7 @@ in
       Type = "notify";
 
       # Runtimeshell wrap nix things. See home-manager.
-      ExecStart = ''${pkgs.runtimeShell} -l -c "${emacs}/emacs --fg-daemon'';
+      ExecStart = ''${pkgs.runtimeShell} -l -c "${emacs}/bin/emacs --fg-daemon"'';
 
       ExecStop = ''${emacs}/bin/emacsclient --eval "(kill-emacs)" '';
 
