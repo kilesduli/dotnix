@@ -4,7 +4,6 @@
   systemd.user.services.cnws = {
     Unit = {
       Description = "chinese-word-segmentation jieba";
-      After = [ "emacs.service" ];
     };
 
     Service = {
