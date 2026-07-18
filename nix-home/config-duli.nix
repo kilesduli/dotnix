@@ -80,9 +80,6 @@
         # python
         pipx
 
-        # go
-        spicetify-cli
-
         # ime-frontend
         fcitx5-gtk
         libsForQt5.fcitx5-qt
