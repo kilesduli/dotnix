@@ -1,0 +1,34 @@
+diff --git a/Telegram/CMakeLists.txt b/Telegram/CMakeLists.txt
+index 48b4b25..712e425 100644
+--- a/Telegram/CMakeLists.txt
++++ b/Telegram/CMakeLists.txt
+@@ -2149,8 +2149,8 @@ else()
+     )
+ 
+     include(${cmake_helpers_loc}/external/glib/generate_dbus.cmake)
+-    generate_dbus(Telegram org.freedesktop.portal. XdpBackground ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.Background.xml)
+-    generate_dbus(Telegram org.freedesktop.portal. FlatpakPortal ${src_loc}/platform/linux/org.freedesktop.portal.Flatpak.xml)
++    generate_dbus(Telegram org.freedesktop.portal. XdpBackground /usr/share/dbus-1/interfaces/org.freedesktop.portal.Background.xml)
++    generate_dbus(Telegram org.freedesktop.portal. FlatpakPortal /usr/share/dbus-1/interfaces/org.freedesktop.portal.Flatpak.xml)
+     generate_dbus(Telegram org.freedesktop. XdgNotifications ${src_loc}/platform/linux/org.freedesktop.Notifications.xml)
+ endif()
+ 
+diff --git a/Telegram/lib_base/CMakeLists.txt b/Telegram/lib_base/CMakeLists.txt
+index bcf2d6a..e47aae6 100644
+--- a/Telegram/lib_base/CMakeLists.txt
++++ b/Telegram/lib_base/CMakeLists.txt
+@@ -281,10 +281,10 @@ if (LINUX)
+     include(${cmake_helpers_loc}/external/glib/generate_dbus.cmake)
+     generate_dbus(lib_base org.freedesktop. XdgDBus ${src_loc}/base/platform/linux/org.freedesktop.DBus.xml)
+     generate_dbus(lib_base org.a11y. AtSpi ${src_loc}/base/platform/linux/org.a11y.Status.xml)
+-    generate_dbus(lib_base org.freedesktop.portal. XdpInhibit ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.Inhibit.xml)
+-    generate_dbus(lib_base org.freedesktop.portal. XdpOpenURI ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.OpenURI.xml)
+-    generate_dbus(lib_base org.freedesktop.portal. XdpRequest ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.Request.xml)
+-    generate_dbus(lib_base org.freedesktop.portal. XdpSettings ${third_party_loc}/xdg-desktop-portal/data/org.freedesktop.portal.Settings.xml)
++    generate_dbus(lib_base org.freedesktop.portal. XdpInhibit /usr/share/dbus-1/interfaces/org.freedesktop.portal.Inhibit.xml)
++    generate_dbus(lib_base org.freedesktop.portal. XdpOpenURI /usr/share/dbus-1/interfaces/org.freedesktop.portal.OpenURI.xml)
++    generate_dbus(lib_base org.freedesktop.portal. XdpRequest /usr/share/dbus-1/interfaces/org.freedesktop.portal.Request.xml)
++    generate_dbus(lib_base org.freedesktop.portal. XdpSettings /usr/share/dbus-1/interfaces/org.freedesktop.portal.Settings.xml)
+     generate_dbus(lib_base org.freedesktop. XdgFileManager1 ${src_loc}/base/platform/linux/org.freedesktop.FileManager1.xml)
+     generate_dbus(lib_base org.gnome.Mutter. MutterIdleMonitor ${src_loc}/base/platform/linux/org.gnome.Mutter.IdleMonitor.xml)
+     generate_dbus(lib_base org.sigxcpu.Feedback. SigxcpuFeedback ${src_loc}/base/platform/linux/org.sigxcpu.Feedback.Haptic.xml)

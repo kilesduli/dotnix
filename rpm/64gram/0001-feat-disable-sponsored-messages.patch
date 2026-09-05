@@ -1,6 +1,6 @@
-From 6be881d7df6cb174c24103fa96c42e54238ebf56 Mon Sep 17 00:00:00 2001
+From 30bfbadd0c8dac3f99e61723209d4eeacc4d6765 Mon Sep 17 00:00:00 2001
 From: duli <duli4868@gmail.com>
-Date: Mon, 28 Jul 2025 20:27:49 +0800
+Date: Sat, 5 Sep 2026 12:41:57 +0800
 Subject: [PATCH 1/3] feat: disable sponsored messages
 
 ---
@@ -8,21 +8,33 @@ Subject: [PATCH 1/3] feat: disable sponsored messages
  1 file changed, 10 deletions(-)
 
 diff --git a/Telegram/SourceFiles/data/components/sponsored_messages.cpp b/Telegram/SourceFiles/data/components/sponsored_messages.cpp
-index 5b55629..a720c68 100644
+index 3d21aed642..bdb8d59077 100644
 --- a/Telegram/SourceFiles/data/components/sponsored_messages.cpp
 +++ b/Telegram/SourceFiles/data/components/sponsored_messages.cpp
-@@ -234,5 +233,0 @@ bool SponsoredMessages::canHaveFor(not_null<History*> history) const {
+@@ -302,11 +302,6 @@ HistoryItem *SponsoredMessages::injectItem(
+ }
+ 
+ bool SponsoredMessages::canHaveFor(not_null<History*> history) const {
 -	if (history->peer->isChannel()) {
 -		return true;
 -	} else if (const auto user = history->peer->asUser()) {
 -		return user->isBot();
 -	}
-@@ -248,5 +242,0 @@ bool SponsoredMessages::isTopBarFor(not_null<History*> history) const {
+ 	return false;
+ }
+ 
+@@ -316,11 +311,6 @@ bool SponsoredMessages::canHaveFor(not_null<HistoryItem*> item) const {
+ }
+ 
+ bool SponsoredMessages::isTopBarFor(not_null<History*> history) const {
 -	if (peerIsUser(history->peer->id)) {
 -		if (const auto user = history->peer->asUser()) {
 -			return user->isBot();
 -		}
 -	}
+ 	return false;
+ }
+ 
 -- 
-2.50.1
+2.55.0
 

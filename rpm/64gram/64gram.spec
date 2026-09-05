@@ -16,18 +16,25 @@
 
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.2.3
+Version:        1.2.8
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
 # * Telegram Desktop - GPL-3.0-or-later with OpenSSL exception -- main tarball;
-# * tg_owt - BSD-3-Clause AND BSD-2-Clause AND Apache-2.0 AND MIT AND LicenseRef-Fedora-Public-Domain -- static dependency;
-# * rlottie - LGPL-2.1-or-later AND AND FTL AND BSD-3-Clause -- static dependency;
 # * cld3  - Apache-2.0 -- static dependency;
-# * qt_functions.cpp - LGPL-3.0-only -- build-time dependency;
-# * open-sans-fonts  - Apache-2.0 -- bundled font;
-# * vazirmatn-fonts - OFL-1.1 -- bundled font.
-License:        GPL-3.0-or-later AND BSD-3-Clause AND BSD-2-Clause AND Apache-2.0 AND MIT AND LicenseRef-Fedora-Public-Domain AND LGPL-2.1-or-later AND FTL AND MPL-1.1 AND LGPL-3.0-only AND OFL-1.1
+# * libprisma - MIT -- static dependency;
+# * tgcalls - LGPL-3.0-only -- static dependency;
+# * wayland-protocols - MIT -- static dependency;
+# * rlottie - MIT -- static dependency;
+# * * kuba--/zip - Unlicense
+# * * miniz - MIT AND Unlicense
+# * * freetype rasterizer - FTL
+# * * vinterpolator.cpp (modified from mozilla/gecko-dev/dom/smil/SMILKeySpline.cpp) - MPL-1.1
+# * * pixman arm neon routines - MIT
+# * cmark-gfm - BSD-2-Clause AND MIT -- static dependency;
+# * clatexmath - MIT -- static dependency;
+# * toomanycooks - BSL-1.0 -- static dependency;
+License:  GPL-3.0-or-later AND Apache-2.0 AND LGPL-3.0-only AND (MIT AND FTL AND BSD-3-Clause AND MPL-1.1 AND (MIT AND Unlicense)) AND BSD-2-Claude AND BSL-1.0
 URL:            https://github.com/TDesktop-x64/tdesktop
 Summary:        Unofficial Telegram Desktop providing Windows 64bit build and extra features
 Source0:        %{name}-%{version}.tar.gz
@@ -35,9 +42,13 @@ Source1:        https://github.com/tdlib/td/archive/%{tde2e_commit}/td-%{tde2e_s
 Patch:          0001-feat-disable-sponsored-messages.patch
 Patch:          0002-feat-disable-saving-restrictions.patch
 Patch:          0003-feat-disable-invite-peeking-restrictions.patch
-Patch:          findprotobuf_fix.patch
+
 # use mochaa tg_owt instead of rpmfusion, so we need this patch to fix build
-Patch:          https://pagure.io/mochaa-rpms/64gram/raw/rawhide/f/64Gram/1000-tgcalls-fix-libyuv-include.patch#/tgcalls-fix-libyuv-include.patch
+Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-tgcalls-fix-libyuv-include.patch
+Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-tdesktop-unbundle-public-dbus-interfaces.patch
+Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-tde2e-use-tdlib.patch
+Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-lib_tl-fix-cstring-include.patch
+
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
 ExclusiveArch:  x86_64 aarch64
@@ -76,6 +87,7 @@ BuildRequires:  pkgconfig(libavfilter)
 BuildRequires:  pkgconfig(libavformat)
 BuildRequires:  pkgconfig(libavutil)
 BuildRequires:  pkgconfig(libcrypto)
+BuildRequires:  pkgconfig(libfido2)
 BuildRequires:  pkgconfig(libjpeg)
 BuildRequires:  pkgconfig(liblz4)
 BuildRequires:  pkgconfig(liblzma)
@@ -83,6 +95,7 @@ BuildRequires:  pkgconfig(libpulse)
 BuildRequires:  pkgconfig(libswresample)
 BuildRequires:  pkgconfig(libswscale)
 BuildRequires:  pkgconfig(libxxhash)
+BuildRequires:  pkgconfig(minizip)
 %if 0%{?fedora} < 41
 BuildRequires:  pkgconfig(openssl)
 %endif
@@ -108,7 +121,6 @@ BuildRequires:  gcc-c++
 BuildRequires:  gperf
 BuildRequires:  libappstream-glib
 BuildRequires:  libatomic
-BuildRequires:  libdispatch-devel
 BuildRequires:  libqrcodegencpp-devel
 BuildRequires:  libstdc++-devel
 BuildRequires:  minizip-compat-devel
@@ -117,6 +129,8 @@ BuildRequires:  python3
 BuildRequires:  qt6-qtbase-private-devel
 BuildRequires:  qt6-qtbase-static
 BuildRequires:  pkgconfig(openh264)
+BuildRequires:  xdg-desktop-portal
+BuildRequires:  flatpak
 
 
 Requires:       hicolor-icon-theme
@@ -131,14 +145,15 @@ Provides:       telegram%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
 
 # Virtual provides for bundled libraries...
 Provides:       bundled(cld3) = 3.0.13~gitb48dc46
-Provides:       bundled(kf5-kcoreaddons) = 5.106.0
-Provides:       bundled(libtgvoip) = 2.4.4~git7c46f4c
-Provides:       bundled(open-sans-fonts) = 1.10
-Provides:       bundled(plasma-wayland-protocols) = 1.6.0
-Provides:       bundled(rlottie) = 0~git8c69fc2
-Provides:       bundled(vazirmatn-fonts) = 27.2.2
-Provides:       bundled(cppgir) = 0~git69ef481c
-Provides:       bundled(minizip) = 1.2.13
+Provides:       bundled(tgcalls) = 0~g871ea04
+Provides:       bundled(libprisma) = 0~gitadf35ba
+# this was the version used on Telegram's servers, which has guards against exploitations.
+Provides:       bundled(rlottie) = 0~g8c69fc2
+# hardened against exploitations.
+Provides:       bundled(cmark-gfm) = 0.29.0~gfm13
+# d-a fork
+Provides:       bundled(clatexmath) = 0.0.5~git7059649
+Provides:       bundled(toomanycooks) = 1.7.0~gitb86af81
 
 %description
 Telegram is a messaging app with a focus on speed and security, it’s super
@@ -162,7 +177,8 @@ mv td-%{tde2e_commit} build-tde2e
 
 # Unbundling libraries... except minizip
 # hime and nimf is another input method, we don't need it.
-rm -rf Telegram/ThirdParty/{GSL,QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,kimageformats,kcoreaddons,lz4,nimf,range-v3,xxHash}
+rm -rf Telegram/ThirdParty/{GSL,QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,kimageformats,kcoreaddons,lz4,nimf,range-v3,xxHash,xdg-desktop-portal,libfido2,libcbor}
+rm Telegram/SourceFiles/platform/linux/org.freedesktop.portal.Flatpak.xml
 
 
 # Fix minizip requrement
@@ -201,6 +217,7 @@ sed -i '/<mediatype>x-scheme-handler\/tg<\/mediatype>/a \        <mediatype>x-sc
     -DDESKTOP_APP_DISABLE_WAYLAND_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_X11_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_CRASH_REPORTS:BOOL=ON \
+    -DTDESKTOP_DISABLE_AUTOUPDATE:BOOL=ON \
     -Dtde2e_DIR="$PWD/build-tde2e/install/lib/cmake/tde2e"
 %cmake_build
 

@@ -1,6 +1,6 @@
-From efbc1d14e7f26858be4d2d2bc22fcccc6c37bcaf Mon Sep 17 00:00:00 2001
+From bb406863e7d8bfaf2d18d9175b7b3c7d649edfd3 Mon Sep 17 00:00:00 2001
 From: duli <duli4868@gmail.com>
-Date: Mon, 28 Jul 2025 20:39:40 +0800
+Date: Sat, 5 Sep 2026 12:41:57 +0800
 Subject: [PATCH 3/3] feat: disable invite peeking restrictions
 
 ---
@@ -8,12 +8,18 @@ Subject: [PATCH 3/3] feat: disable invite peeking restrictions
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/Telegram/SourceFiles/data/data_channel.cpp b/Telegram/SourceFiles/data/data_channel.cpp
-index 23b5d36..b032315 100644
+index 3daf11247c..4bf56428bc 100644
 --- a/Telegram/SourceFiles/data/data_channel.cpp
 +++ b/Telegram/SourceFiles/data/data_channel.cpp
-@@ -1067 +1067 @@ TimeId ChannelData::invitePeekExpires() const {
+@@ -1111,7 +1111,7 @@ void ChannelData::clearInvitePeek() {
+ }
+ 
+ TimeId ChannelData::invitePeekExpires() const {
 -	return _invitePeek ? _invitePeek->expires : 0;
 +	return 0;
+ }
+ 
+ QString ChannelData::invitePeekHash() const {
 -- 
-2.50.1
+2.55.0
 
