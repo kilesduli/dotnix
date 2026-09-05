@@ -34,6 +34,8 @@ in
       TimeoutStopSec = "10s";
 
       Restart = "on-failure";
+
+      Environment = "LANG=en_US.UTF-8";
     };
 
     Install = {
