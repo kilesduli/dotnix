@@ -32,27 +32,27 @@
   };
   source-emacs-master = {
     pname = "source-emacs-master";
-    version = "d0653b46f65d340ad464e318e06d301380091bc0";
+    version = "38e69f8b27ad17853d5a07ba0df75d419946ce5c";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "d0653b46f65d340ad464e318e06d301380091bc0";
+      rev = "38e69f8b27ad17853d5a07ba0df75d419946ce5c";
       fetchSubmodules = false;
-      sha256 = "sha256-35Qc9yoZVKqsynM5+cbMaYKzNy0q/5nT/WF4VDi2QFE=";
+      sha256 = "sha256-aQnDPYCI88qoFtxT/q2RxTr5kDdXDpALiHmFh0sQtYQ=";
     };
-    date = "2026-06-10";
+    date = "2026-09-05";
   };
   source-emacs-master-igc = {
     pname = "source-emacs-master-igc";
-    version = "18548c4b25fd2769fc30f44bea5bc1a03153036e";
+    version = "07b35c82b7dfc9d0c044dc54dcc65675f49de87e";
     src = fetchFromGitHub {
       owner = "emacs-mirror";
       repo = "emacs";
-      rev = "18548c4b25fd2769fc30f44bea5bc1a03153036e";
+      rev = "07b35c82b7dfc9d0c044dc54dcc65675f49de87e";
       fetchSubmodules = false;
-      sha256 = "sha256-+/ZUa8pmqShwiCtPiQ1EHKRY3nSbzFr+osY10dq0slU=";
+      sha256 = "sha256-/KKDhIXhmHVIl7vz/cz9gnba36NPWC5ZyQpcmmY2yl8=";
     };
-    date = "2026-06-09";
+    date = "2026-08-06";
   };
   source-librime-charcode = {
     pname = "source-librime-charcode";
@@ -68,27 +68,27 @@
   };
   source-librime-lua = {
     pname = "source-librime-lua";
-    version = "ec52e48ea18f11af37717a01c337f853215cf70b";
+    version = "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe";
     src = fetchFromGitHub {
       owner = "hchunhui";
       repo = "librime-lua";
-      rev = "ec52e48ea18f11af37717a01c337f853215cf70b";
+      rev = "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe";
       fetchSubmodules = false;
-      sha256 = "sha256-ipqsYAqlt29dZlgynziCC4rHFDbXsD64KPkhXQiz8/w=";
+      sha256 = "sha256-Zi5VyFyLk4n34+TEDvV2HEYQKL60mEiVVLFKb6hWFdE=";
     };
-    date = "2026-05-02";
+    date = "2026-08-31";
   };
   source-librime-octagram = {
     pname = "source-librime-octagram";
-    version = "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8";
+    version = "57d18b9f58e5284bd891d559f6bdd16cf60341e9";
     src = fetchFromGitHub {
       owner = "lotem";
       repo = "librime-octagram";
-      rev = "dfcc15115788c828d9dd7b4bff68067d3ce2ffb8";
+      rev = "57d18b9f58e5284bd891d559f6bdd16cf60341e9";
       fetchSubmodules = false;
-      sha256 = "sha256-dgUsH10V87mEcX/k3N118qbKo3fKDFcS8inhS6p5bJc=";
+      sha256 = "sha256-nQA8u0iqioLBM2rA57NPd7TOS49aHQl+mHKfu0sRwhY=";
     };
-    date = "2024-11-18";
+    date = "2026-08-31";
   };
   source-librime-proto = {
     pname = "source-librime-proto";
@@ -104,25 +104,25 @@
   };
   source-spicetify-cli = {
     pname = "source-spicetify-cli";
-    version = "v2.43.2";
+    version = "v2.44.0";
     src = fetchFromGitHub {
       owner = "spicetify";
       repo = "cli";
-      rev = "v2.43.2";
+      rev = "v2.44.0";
       fetchSubmodules = false;
-      sha256 = "sha256-77OZVDtybkYI5R3tZ7q2cLJ+Ixn8WB4CP4qP6Yp535g=";
+      sha256 = "sha256-4RRy1mmqjKxDUqSV7W6KHZZcbsJvnB2hZpys1MPip3E=";
     };
   };
   source-zsh-jovial-theme = {
     pname = "source-zsh-jovial-theme";
-    version = "426fe1fb612e85817ec23440a64f2732b8d34b3f";
+    version = "03df56571db2bad27c25655d31fd9ca1d43b9f0f";
     src = fetchFromGitHub {
       owner = "zthxxx";
       repo = "jovial";
-      rev = "426fe1fb612e85817ec23440a64f2732b8d34b3f";
+      rev = "03df56571db2bad27c25655d31fd9ca1d43b9f0f";
       fetchSubmodules = false;
-      sha256 = "sha256-VvF1alXCLatkSDJGImxFkijiVwtOGYgH1gXlqLfgWcs=";
+      sha256 = "sha256-2P6hIHw9Wx6lV0xllYHzUUpnjF8+W71rXLsmEJwAOQE=";
     };
-    date = "2026-05-12";
+    date = "2026-08-17";
   };
 }
