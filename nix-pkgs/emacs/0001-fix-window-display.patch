@@ -1,0 +1,32 @@
+From 0e259878512829bcd124af073060b20e0901de4d Mon Sep 17 00:00:00 2001
+From: duli <duli4868@gmail.com>
+Date: Tue, 8 Sep 2026 20:40:07 +0800
+Subject: [PATCH] fix window display
+
+---
+ src/dispnew.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/src/dispnew.c b/src/dispnew.c
+index dd799c62d02..553deabbe7b 100644
+--- a/src/dispnew.c
++++ b/src/dispnew.c
+@@ -4450,6 +4450,15 @@ update_window (struct window *w)
+   row = MATRIX_ROW (desired_matrix, 0);
+   end = MATRIX_MODE_LINE_ROW (desired_matrix);
+ 
++  /* Overlay changes can alter which buffer lines are visible without
++     changing the text itself.  In that case the physical display cannot
++     safely be updated by moving rows from the previous glyph matrix:
++     invisible overlays can leave pixels behind in rows that disappear.
++     This mirrors the guard in `try_window_id'.  */
++  if (w->last_overlay_modified
++      != BUF_OVERLAY_MODIFF (XBUFFER (w->contents)))
++    desired_matrix->no_scrolling_p = true;
++
+   /* Take note of the tab line, if there is one.  We will
+      update it below, after updating all of the window's lines.  */
+   if (row->mode_line_p && row->tab_line_p)
+-- 
+2.55.0
+

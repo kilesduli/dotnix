@@ -72,7 +72,7 @@ let
           else [ ]
         );
         patches = [
-
+          ./emacs/0001-fix-window-display.patch
         ];
         postPatch = (old.postPatch or "") + (lib.optionalString ((old ? NATIVE_FULL_AOT) || (old ? env.NATIVE_FULL_AOT))
           (
