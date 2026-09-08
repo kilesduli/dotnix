@@ -1,4 +1,4 @@
-{ emacs30
+{ emacs
 , lib
 , ccacheStdenv
 , stdenv
@@ -54,7 +54,7 @@ let
     let
       source-emacs = if withIgc then source-emacs-master-igc else source-emacs-master;
     in
-    (emacs30.override ({
+    (emacs.override ({
       stdenv = ccacheStdenv;
       srcRepo = true;
     } // removeAttrs opts [ "withIgc" ])).overrideAttrs (
@@ -72,7 +72,7 @@ let
           else [ ]
         );
         patches = [
-          ./emacs/0001-fix-display-redraw.patch
+
         ];
         postPatch = (old.postPatch or "") + (lib.optionalString ((old ? NATIVE_FULL_AOT) || (old ? env.NATIVE_FULL_AOT))
           (
