@@ -54,6 +54,69 @@ in() {
   )
 }
 
+pathm() {
+  local action=${1:-list}
+  local item normalized entry
+  local invalid=0
+  local -a args normalized_paths remaining
+
+  args=("${@[2,-1]}")
+
+  case $action in
+    list)
+      print -rl -- "${path[@]}"
+      return
+      ;;
+    add|rm)
+      if (( $#args == 0 )); then
+        invalid=1
+      fi
+      ;;
+    *)
+      invalid=1
+      ;;
+  esac
+
+  if (( invalid )); then
+    print -u2 'usage: pathm {add|rm|list} [path ...]'
+    return 2
+  fi
+
+  for item in "${args[@]}"; do
+    if [[ $item == '~' || $item == '~/'* ]]; then
+      item=$HOME${item#\~}
+    fi
+    normalized_paths+=("${item:a}")
+  done
+
+  case $action in
+    add)
+      for normalized in "${normalized_paths[@]}"; do
+        if [[ ! -e $normalized ]]; then
+          print -u2 "pathm: path does not exist: $normalized"
+          return 1
+        fi
+        if (( ! ${path[(Ie)$normalized]} )); then
+          path=("$normalized" "${path[@]}")
+        fi
+      done
+      ;;
+    rm)
+      for normalized in "${normalized_paths[@]}"; do
+        remaining=()
+        for entry in "${path[@]}"; do
+          if [[ $entry != $normalized && ${entry:a} != $normalized ]]; then
+            remaining+=("$entry")
+          fi
+        done
+        path=("${remaining[@]}")
+      done
+      ;;
+  esac
+  export PATH
+}
+
+
 # Aliases
 alias -- e='emacsclient --alternate-editor="" --create-frame --no-wait'
 alias -- fars='curl -F "c=@-" "http://fars.ee/"'
