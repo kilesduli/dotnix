@@ -43,7 +43,7 @@
     },
     "source-emacs-master": {
         "cargoLock": null,
-        "date": "2026-09-05",
+        "date": "2026-10-07",
         "extract": null,
         "name": "source-emacs-master",
         "passthru": null,
@@ -55,16 +55,16 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "38e69f8b27ad17853d5a07ba0df75d419946ce5c",
-            "sha256": "sha256-aQnDPYCI88qoFtxT/q2RxTr5kDdXDpALiHmFh0sQtYQ=",
+            "rev": "7eaced7948f118a3a3cad47e2577158017ca3abf",
+            "sha256": "sha256-ZcRTlMlydmEFRhCWtp54ZDc5nKuOdzD7qLAgJ1Gc3HA=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "38e69f8b27ad17853d5a07ba0df75d419946ce5c"
+        "version": "7eaced7948f118a3a3cad47e2577158017ca3abf"
     },
     "source-emacs-master-igc": {
         "cargoLock": null,
-        "date": "2026-08-06",
+        "date": "2026-09-26",
         "extract": null,
         "name": "source-emacs-master-igc",
         "passthru": null,
@@ -76,12 +76,12 @@
             "name": null,
             "owner": "emacs-mirror",
             "repo": "emacs",
-            "rev": "07b35c82b7dfc9d0c044dc54dcc65675f49de87e",
-            "sha256": "sha256-/KKDhIXhmHVIl7vz/cz9gnba36NPWC5ZyQpcmmY2yl8=",
+            "rev": "9c38c2f42c0686df50fbe486aaccda84641f082e",
+            "sha256": "sha256-5bdLmiED/RXZ2cVWnrdv2gMdukKpDOQCaVSDHPxeW5c=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "07b35c82b7dfc9d0c044dc54dcc65675f49de87e"
+        "version": "9c38c2f42c0686df50fbe486aaccda84641f082e"
     },
     "source-librime-charcode": {
         "cargoLock": null,
@@ -106,7 +106,7 @@
     },
     "source-librime-lua": {
         "cargoLock": null,
-        "date": "2026-08-31",
+        "date": "2026-09-30",
         "extract": null,
         "name": "source-librime-lua",
         "passthru": null,
@@ -118,12 +118,12 @@
             "name": null,
             "owner": "hchunhui",
             "repo": "librime-lua",
-            "rev": "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe",
-            "sha256": "sha256-Zi5VyFyLk4n34+TEDvV2HEYQKL60mEiVVLFKb6hWFdE=",
+            "rev": "6f30968058a3ca83c47949308ef0ddc51a11a264",
+            "sha256": "sha256-drq6xHgcXXyEAUdR3p+5OvJememQGOrI1a5WfJ0+oLU=",
             "sparseCheckout": [],
             "type": "github"
         },
-        "version": "ad1e4a6c98abf634dd34242a747f9b1d5d069fbe"
+        "version": "6f30968058a3ca83c47949308ef0ddc51a11a264"
     },
     "source-librime-octagram": {
         "cargoLock": null,
@@ -166,27 +166,6 @@
             "type": "github"
         },
         "version": "657a923cd4c333e681dc943e6894e6f6d42d25b4"
-    },
-    "source-spicetify-cli": {
-        "cargoLock": null,
-        "date": null,
-        "extract": null,
-        "name": "source-spicetify-cli",
-        "passthru": null,
-        "pinned": false,
-        "src": {
-            "deepClone": false,
-            "fetchSubmodules": false,
-            "leaveDotGit": false,
-            "name": null,
-            "owner": "spicetify",
-            "repo": "cli",
-            "rev": "v2.44.0",
-            "sha256": "sha256-4RRy1mmqjKxDUqSV7W6KHZZcbsJvnB2hZpys1MPip3E=",
-            "sparseCheckout": [],
-            "type": "github"
-        },
-        "version": "v2.44.0"
     },
     "source-zsh-jovial-theme": {
         "cargoLock": null,
