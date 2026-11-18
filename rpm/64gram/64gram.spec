@@ -5,6 +5,8 @@
     %global _lto_cflags %nil
 %endif
 
+%global _default_patch_fuzz 2
+
 # Telegram Desktop's constants...
 %global appname 64Gram
 
@@ -14,9 +16,13 @@
 %global tde2e_commit 6d509061574d684117f74133056aa43df89022fc
 %global tde2e_shortcommit %(c=%{tde2e_commit}; echo ${c:0:7})
 
+%global wallet_engine_tag v0.0.7
+%global wallet_engine_version %(echo "%{wallet_engine_tag}" | sed 's/^v//')
+
+
 Name:           64gram-desktop
 Epoch:          1
-Version:        1.2.8
+Version:        1.2.13
 Release:        1%{?dist}
 
 # Application and 3rd-party modules licensing:
@@ -34,11 +40,15 @@ Release:        1%{?dist}
 # * cmark-gfm - BSD-2-Clause AND MIT -- static dependency;
 # * clatexmath - MIT -- static dependency;
 # * toomanycooks - BSL-1.0 -- static dependency;
-License:  GPL-3.0-or-later AND Apache-2.0 AND LGPL-3.0-only AND (MIT AND FTL AND BSD-3-Clause AND MPL-1.1 AND (MIT AND Unlicense)) AND BSD-2-Claude AND BSL-1.0
+License:        GPL-3.0-or-later AND Apache-2.0 AND LGPL-3.0-only AND (MIT AND FTL AND BSD-3-Clause AND MPL-1.1 AND (MIT AND Unlicense)) AND BSD-2-Claude AND BSL-1.0
 URL:            https://github.com/TDesktop-x64/tdesktop
 Summary:        Unofficial Telegram Desktop providing Windows 64bit build and extra features
 Source0:        %{name}-%{version}.tar.gz
 Source1:        https://github.com/tdlib/td/archive/%{tde2e_commit}/td-%{tde2e_shortcommit}.tar.gz
+Source2:        https://github.com/i582/wallet-engine/archive/%{wallet_engine_tag}.tar.gz#/wallet-engine-%{wallet_engine_version}.tar.gz
+Source3:        wallet-vendor.tar.gz
+Source4:        wallet-bindgen-vendor.tar.gz
+
 Patch:          0001-feat-disable-sponsored-messages.patch
 Patch:          0002-feat-disable-saving-restrictions.patch
 Patch:          0003-feat-disable-invite-peeking-restrictions.patch
@@ -48,6 +58,12 @@ Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gra
 Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-tdesktop-unbundle-public-dbus-interfaces.patch
 Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-tde2e-use-tdlib.patch
 Patch:          https://codeberg.org/mochaa-rpms/64gram/raw/branch/rawhide/64Gram/1000-lib_tl-fix-cstring-include.patch
+
+# wallet_engine
+Patch1001:      https://raw.githubusercontent.com/desktop-app/patches/refs/heads/master/wallet-engine.patch
+
+Source600:      source-tarball.sh
+Source601:      wallet-vendor.sh
 
 # Telegram Desktop require more than 8 GB of RAM on linking stage.
 # Disabling all low-memory architectures.
@@ -103,6 +119,7 @@ BuildRequires:  pkgconfig(opus)
 BuildRequires:  pkgconfig(protobuf)
 BuildRequires:  pkgconfig(protobuf-lite)
 BuildRequires:  pkgconfig(rnnoise)
+BuildRequires:  pkgconfig(tlottie)
 BuildRequires:  pkgconfig(vpx)
 BuildRequires:  pkgconfig(wayland-client)
 BuildRequires:  pkgconfig(webkitgtk-6.0)
@@ -131,6 +148,7 @@ BuildRequires:  qt6-qtbase-static
 BuildRequires:  pkgconfig(openh264)
 BuildRequires:  xdg-desktop-portal
 BuildRequires:  flatpak
+BuildRequires:  cargo-rpm-macros
 
 
 Requires:       hicolor-icon-theme
@@ -143,56 +161,66 @@ Conflicts:      telegram-desktop%{?_isa}
 Provides:       telegram = %{?epoch:%{epoch}:}%{version}-%{release}
 Provides:       telegram%{?_isa} = %{?epoch:%{epoch}:}%{version}-%{release}
 
-# Virtual provides for bundled libraries...
-Provides:       bundled(cld3) = 3.0.13~gitb48dc46
-Provides:       bundled(tgcalls) = 0~g871ea04
-Provides:       bundled(libprisma) = 0~gitadf35ba
-# this was the version used on Telegram's servers, which has guards against exploitations.
-Provides:       bundled(rlottie) = 0~g8c69fc2
-# hardened against exploitations.
-Provides:       bundled(cmark-gfm) = 0.29.0~gfm13
-# d-a fork
-Provides:       bundled(clatexmath) = 0.0.5~git7059649
-Provides:       bundled(toomanycooks) = 1.7.0~gitb86af81
-
 %description
-Telegram is a messaging app with a focus on speed and security, it’s super
-fast, simple and free. You can use Telegram on all your devices at the same
-time — your messages sync seamlessly across any number of your phones,
-tablets or computers.
-
-With Telegram, you can send messages, photos, videos and files of any type
-(doc, zip, mp3, etc), as well as create groups for up to 50,000 people or
-channels for broadcasting to unlimited audiences. You can write to your
-phone contacts and find people by their usernames. As a result, Telegram is
-like SMS and email combined — and can take care of all your personal or
-business messaging needs.
+64gram-desktop
 
 %prep
 # Unpacking Telegram Desktop source archive...
-%autosetup -p1
+%autosetup -N
+%autopatch -p1 -M1000
 
-tar -xaf %{SOURCE1}
+tar -xaf %{S:1}
 mv td-%{tde2e_commit} build-tde2e
+
+tar -xaf %{S:2}
+mv wallet-engine-%{wallet_engine_version} build-wallet_engine
+%patch -d build-wallet_engine -p1 1001
+
+mkdir -p build-wallet_engine/wallet-vendor
+tar -xaf %{S:3} -C build-wallet_engine/wallet-vendor
+
+mkdir -p build-wallet_engine/bindgen/cpp/wallet-bindgen-vendor
+tar -xaf %{S:4} -C build-wallet_engine/bindgen/cpp/wallet-bindgen-vendor 
+
+pushd build-wallet_engine
+%cargo_prep -v wallet-vendor
+popd
+
+pushd build-wallet_engine/bindgen/cpp
+%cargo_prep -v wallet-bindgen-vendor
+popd
 
 # Unbundling libraries... except minizip
 # hime and nimf is another input method, we don't need it.
 rm -rf Telegram/ThirdParty/{GSL,QR,dispatch,expected,fcitx-qt5,fcitx5-qt,hime,hunspell,kimageformats,kcoreaddons,lz4,nimf,range-v3,xxHash,xdg-desktop-portal,libfido2,libcbor}
 rm Telegram/SourceFiles/platform/linux/org.freedesktop.portal.Flatpak.xml
 
-
-# Fix minizip requrement
-# sed -i 's|2.0.0|4.0.0|' cmake/external/minizip/CMakeLists.txt
-
 %if 0%{?fedora} >= 41
 sed -i "/#include <openssl\/engine.h>/d" Telegram/SourceFiles/core/utils.cpp
 %endif
 
-sed -i '/^TryExec=/ s/Telegram/\/usr\/bin\/Telegram/g; /^Exec=/ s/Telegram/\/usr\/bin\/Telegram/g' lib/xdg/io.github.tdesktop_x64.TDesktop.desktop
+sed -i 's/set(output_name "64Gram")/set(output_name "Telegram")/g; s/STREQUAL "64Gram"/STREQUAL "Telegram"/g' Telegram/CMakeLists.txt
+sed -i '/^TryExec=/ s/64Gram/\/usr\/bin\/Telegram/g; /^Exec=/ s/64Gram/\/usr\/bin\/Telegram/g' lib/xdg/io.github.tdesktop_x64.TDesktop.desktop
+sed -i 's/^StartupWMClass=64Gram$/StartupWMClass=Telegram/' lib/xdg/io.github.tdesktop_x64.TDesktop.desktop
+sed -i 's|<binary>telegram-desktop</binary>|<binary>Telegram</binary>|' lib/xdg/io.github.tdesktop_x64.TDesktop.metainfo.xml
+sed -i 's/64Gram/Telegram/g' lib/xdg/io.github.tdesktop_x64.TDesktop.service
 sed -i 's/telegram-desktop/Telegram/' lib/xdg/io.github.tdesktop_x64.TDesktop.metainfo.xml
-sed -i '/<mediatype>x-scheme-handler\/tg<\/mediatype>/a \        <mediatype>x-scheme-handler/tonsite</mediatype>' lib/xdg/io.github.tdesktop_x64.TDesktop.metainfo.xml
 
 %build
+( TOPDIR=$(pwd)
+  pushd build-wallet_engine
+  %cargo_build
+  popd
+
+  pushd build-wallet_engine/bindgen/cpp
+  %{__cargo} run %{__cargo_common_opts} --profile rpm \
+      --manifest-path ./Cargo.toml -- \
+      --library --out-dir $TOPDIR/build-wallet_engine/install/include/wallet_engine \
+      $TOPDIR/build-wallet_engine/target/rpm/libwallet_engine.so
+  popd
+)
+
+
 %__cmake -S build-tde2e -B build-tde2e/build \
     -DCMAKE_INSTALL_PREFIX="$PWD/build-tde2e/install" \
     -Wno-dev \
@@ -202,7 +230,6 @@ sed -i '/<mediatype>x-scheme-handler\/tg<\/mediatype>/a \        <mediatype>x-sc
 %__cmake --install build-tde2e/build
 
 
-# Building Telegram Desktop using cmake...
 %cmake -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_AR=%{_bindir}/gcc-ar \
@@ -218,7 +245,9 @@ sed -i '/<mediatype>x-scheme-handler\/tg<\/mediatype>/a \        <mediatype>x-sc
     -DDESKTOP_APP_DISABLE_X11_INTEGRATION:BOOL=OFF \
     -DDESKTOP_APP_DISABLE_CRASH_REPORTS:BOOL=ON \
     -DTDESKTOP_DISABLE_AUTOUPDATE:BOOL=ON \
-    -Dtde2e_DIR="$PWD/build-tde2e/install/lib/cmake/tde2e"
+    -Dtde2e_DIR="$PWD/build-tde2e/install/lib/cmake/tde2e" \
+    -DDESKTOP_APP_WALLET_ENGINE_LIBRARY="$PWD/build-wallet_engine/target/rpm/libwallet_engine.a" \
+    -DDESKTOP_APP_WALLET_ENGINE_INCLUDE_DIR="$PWD/build-wallet_engine/install/include/wallet_engine"
 %cmake_build
 
 %install
